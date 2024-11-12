@@ -315,3 +315,64 @@ Text 'START' to place another order.
 2024-11-08 13:50:25,544 - werkzeug - INFO - 192.168.1.65 - - [08/Nov/2024 13:50:25] "GET / HTTP/1.1" 200 -
 2024-11-08 13:50:40,636 - werkzeug - INFO - 192.168.1.65 - - [08/Nov/2024 13:50:40] "GET / HTTP/1.1" 200 -
 2024-11-08 13:53:39,685 - werkzeug - INFO - 192.168.1.65 - - [08/Nov/2024 13:53:39] "GET / HTTP/1.1" 200 -
+2024-11-11 22:19:28,138 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8000
+ * Running on http://192.168.1.66:8000
+2024-11-11 22:19:28,138 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2024-11-11 22:19:28,139 - werkzeug - INFO -  * Restarting with stat
+2024-11-11 22:19:28,263 - werkzeug - WARNING -  * Debugger is active!
+2024-11-11 22:19:28,268 - werkzeug - INFO -  * Debugger PIN: 981-239-810
+2024-11-11 22:19:31,963 - werkzeug - INFO - 127.0.0.1 - - [11/Nov/2024 22:19:31] "GET / HTTP/1.1" 200 -
+2024-11-11 22:28:31,941 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8000
+ * Running on http://192.168.1.66:8000
+2024-11-11 22:28:31,941 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2024-11-11 22:28:31,942 - werkzeug - INFO -  * Restarting with stat
+2024-11-11 22:28:32,239 - werkzeug - WARNING -  * Debugger is active!
+2024-11-11 22:28:32,245 - werkzeug - INFO -  * Debugger PIN: 981-239-810
+2024-11-11 22:29:45,500 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8000
+ * Running on http://192.168.1.66:8000
+2024-11-11 22:29:45,500 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2024-11-11 22:29:45,500 - werkzeug - INFO -  * Restarting with stat
+2024-11-11 22:29:45,791 - werkzeug - WARNING -  * Debugger is active!
+2024-11-11 22:29:45,797 - werkzeug - INFO -  * Debugger PIN: 981-239-810
+2024-11-11 22:30:10,789 - __main__ - INFO - Incoming message from  1234567890: hello
+2024-11-11 22:30:11,187 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2024-11-11 22:30:11,188 - openai._base_client - INFO - Retrying request to /chat/completions in 0.454382 seconds
+2024-11-11 22:30:11,712 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2024-11-11 22:30:11,713 - openai._base_client - INFO - Retrying request to /chat/completions in 0.867023 seconds
+2024-11-11 22:30:12,641 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2024-11-11 22:30:12,644 - __main__ - ERROR - OpenAI API error: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}
+2024-11-11 22:30:12,644 - __main__ - INFO - Sending response to  1234567890: Welcome to Coffee S50! Order by number or name:
+
+1. Espresso ($3.50)
+   Strong, pure coffee shot
+2. Latte ($4.50)
+   Espresso with steamed milk
+3. Cappuccino ($4.50)
+   Equal parts espresso, steamed milk, and foam
+4. Cold Brew ($4.50)
+   12-hour steeped coffee
+5. Iced Latte ($5.00)
+   Espresso over ice with cold milk
+6. Croissant ($3.50)
+   Butter croissant
+7. Muffin ($3.00)
+   Blueberry muffin
+
+2024-11-11 22:30:12,645 - werkzeug - INFO - 127.0.0.1 - - [11/Nov/2024 22:30:12] "POST /sms HTTP/1.1" 200 -
+2024-11-11 22:53:05,834 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8000
+ * Running on http://192.168.1.66:8000
+2024-11-11 22:53:05,834 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2024-11-11 22:53:05,835 - werkzeug - INFO -  * Restarting with stat
+2024-11-11 22:53:06,143 - werkzeug - WARNING -  * Debugger is active!
+2024-11-11 22:53:06,149 - werkzeug - INFO -  * Debugger PIN: 981-239-810
+2024-11-11 22:53:13,064 - werkzeug - INFO - 127.0.0.1 - - [11/Nov/2024 22:53:13] "GET / HTTP/1.1" 200 -
+2024-11-11 22:53:38,886 - werkzeug - INFO - 127.0.0.1 - - [11/Nov/2024 22:53:38] "GET / HTTP/1.1" 200 -
+2024-11-11 22:53:39,569 - werkzeug - INFO - 127.0.0.1 - - [11/Nov/2024 22:53:39] "[33mGET /test-openai HTTP/1.1[0m" 404 -

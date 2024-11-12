@@ -6,6 +6,8 @@ from datetime import datetime, timedelta
 import logging
 import uuid
 import os
+import openai
+from openai import OpenAI
 
 
 app = Flask(__name__)
@@ -27,6 +29,9 @@ TWILIO_PHONE_NUMBER = config('TWILIO_PHONE_NUMBER', default='')
 
 # Initialize Twilio client
 twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+
+# Initialize OpenAI client
+client = OpenAI(api_key=config('OPENAI_API_KEY'))
 
 # Menu configuration
 MENU = {
@@ -224,109 +229,97 @@ def complete_order(phone_number, cart):
     
     return confirmation_message
 
+def get_ai_response(user_message, phone_number):
+    """Get AI-generated response based on user message and context"""
+    # Get user's cart if they have one
+    user_cart = active_orders.get(phone_number, {}).get('cart')
+    cart_status = user_cart.get_summary() if user_cart else "No items in cart"
+    
+    # Create a system message that constrains the AI to our menu
+    system_message = f"""You are a friendly coffee shop assistant. You can engage in natural conversation 
+    about our menu items: {', '.join(f"{item['item']} (${item['price']})" for item in MENU.values())}.
+
+    Current cart: {cart_status}
+
+    Remember:
+    1. Only suggest items from our menu
+    2. Guide users to order using numbers (1-7) or exact item names
+    3. Keep responses friendly but concise
+    4. If users ask about unavailable items, suggest similar ones from our menu
+    5. Recognize order-related commands: ADD, REMOVE, DONE, CLEAR, STATUS"""
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": user_message}
+            ],
+            max_tokens=150,
+            temperature=0.7
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        logger.error(f"OpenAI API error: {str(e)}")
+        return None
+
 def process_message(phone_number, message):
     """Process incoming messages based on current order state"""
     message = message.lower().strip()
     
-    # Check order status
-    if message == 'status':
-        if phone_number in completed_orders and completed_orders[phone_number]:
-            latest_order = completed_orders[phone_number][-1]
-            return latest_order.get_status_message()
-        return "No active orders found. Text 'START' to place an order."
-    
-    # Start new order
-    if message in ['start', 'coffee', 'hello', 'hi']:
+    # Initialize order if this is a new conversation
+    if phone_number not in active_orders and message not in ['status', 'help']:
         active_orders[phone_number] = {
             'state': 'MENU',
             'cart': ShoppingCart(),
             'last_action': None
         }
-        return get_menu_message()
-    
-    # Handle help command
+
+    # Handle direct commands first
+    if message == 'status':
+        if phone_number in completed_orders and completed_orders[phone_number]:
+            latest_order = completed_orders[phone_number][-1]
+            return latest_order.get_status_message()
+        return "No active orders found. Text 'START' to place an order."
+
     if message == 'help':
         return get_help_message()
-    
-    # Handle existing order
-    if phone_number not in active_orders:
-        return "Welcome! Text 'START' to begin ordering."
-    
-    order = active_orders[phone_number]
-    cart = order['cart']
-    
-    # Handle cart commands
+
     if message == 'clear':
-        cart.clear()
-        return "Cart cleared. Text 'MENU' to see options."
-    
+        if phone_number in active_orders:
+            active_orders[phone_number]['cart'].clear()
+            return "Cart cleared. Text 'MENU' to see options."
+        return "No active cart. Text 'START' to begin ordering."
+
     if message == 'cart':
-        return cart.get_summary()
-        
-    if message == 'done':
-        if not cart.items:
-            return "Your cart is empty. Text 'MENU' to see options."
-        order['state'] = 'PAYMENT'
-        return (
-            f"Total to be charged: ${cart.total:.2f}\n\n"
-            "To complete your order, please reply with the test credit card number:\n"
-            "4242-4242-4242-4242"
-        )
-    
-    # Handle menu navigation
-    if message == 'menu':
-        return get_menu_message()
-    
-    if message in ['hot', 'cold', 'food']:
-        results = get_category_menu(message)
-        return format_menu_message(results)
-    
-    # Handle flexible item ordering
-    # Check if message starts with "add" and has a number
-    if message.startswith('add '):
-        try:
-            item_id = message.split()[1]
-            if item_id in MENU:
-                cart.add_item(MENU[item_id])
-                return cart.get_summary()
-        except IndexError:
-            pass
-    
-    # Check if message is just a number
-    if message.isdigit() and message in MENU:
-        cart.add_item(MENU[message])
-        return cart.get_summary()
-    
-    # Check if message matches item name
-    for menu_id, item in MENU.items():
-        if message == item['item'].lower():
-            cart.add_item(MENU[menu_id])
-            return cart.get_summary()
-    
-    # Handle removal similarly
-    if message.startswith('remove '):
-        try:
-            item_id = message.split()[1]
-            if cart.remove_item(item_id):
-                return cart.get_summary()
-            return "Item not found in cart."
-        except IndexError:
-            return "Please specify an item number (e.g., 'REMOVE 1')"
-    
-    # Search functionality
-    if message.startswith('find '):
-        query = message[5:]
-        results = search_menu(query)
-        return format_menu_message(results)
-    
-    # Handle payment and completion
-    if order['state'] == 'PAYMENT' and '4242' in message:
-        confirmation = complete_order(phone_number, cart)
-        del active_orders[phone_number]  # Clear active order
-        return confirmation
-    
-    # Default response for unrecognized commands
-    return "Sorry, I didn't understand that. Text 'MENU' to see options or 'HELP' for commands."
+        if phone_number in active_orders:
+            return active_orders[phone_number]['cart'].get_summary()
+        return "No active cart. Text 'START' to begin ordering."
+
+    # Get AI response for general queries
+    ai_response = get_ai_response(message, phone_number)
+    if ai_response:
+        # Process any order-related commands that might be in the message
+        order = active_orders.get(phone_number, {})
+        cart = order.get('cart') if order else None
+
+        # Check for item numbers or names in the message
+        for menu_id, item in MENU.items():
+            if menu_id in message or item['item'].lower() in message.lower():
+                if cart:
+                    cart.add_item(MENU[menu_id])
+                    return f"{ai_response}\n\n{cart.get_summary()}"
+
+        # Handle payment confirmation
+        if order and order.get('state') == 'PAYMENT' and '4242' in message:
+            confirmation = complete_order(phone_number, cart)
+            del active_orders[phone_number]
+            return confirmation
+
+        return ai_response
+
+    # Fallback to original menu if AI fails
+    return get_menu_message()
 
 # Flask routes
 @app.route('/')
@@ -361,6 +354,21 @@ def handle_sms():
         resp.message("Sorry, something went wrong. Please text 'START' to try again.")
     
     return str(resp)
+
+@app.route('/test-openai', methods=['GET'])
+def test_openai():
+    """Test OpenAI connection and check credits"""
+    try:
+        # Try to make a minimal API call
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": "Hi"}],
+            max_tokens=1
+        )
+        return "OpenAI API is working!"
+    except Exception as e:
+        logger.error(f"OpenAI API error: {str(e)}", exc_info=True)
+        return f"OpenAI API error: {str(e)}"
 
 if __name__ == '__main__':
     print("Starting Flask server on port 8000...")
