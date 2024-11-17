@@ -1,378 +1,44 @@
-2024-11-07 22:07:43,528 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+2024-11-15 16:02:38,950 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on http://127.0.0.1:5000
-2024-11-07 22:07:43,528 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2024-11-07 22:07:43,529 - werkzeug - INFO -  * Restarting with stat
-2024-11-07 22:07:43,666 - werkzeug - WARNING -  * Debugger is active!
-2024-11-07 22:07:43,677 - werkzeug - INFO -  * Debugger PIN: 981-239-810
-2024-11-07 22:08:24,931 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on http://127.0.0.1:5000
-2024-11-07 22:08:24,931 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2024-11-07 22:08:24,932 - werkzeug - INFO -  * Restarting with stat
-2024-11-07 22:08:25,057 - werkzeug - WARNING -  * Debugger is active!
-2024-11-07 22:08:25,060 - werkzeug - INFO -  * Debugger PIN: 981-239-810
-2024-11-07 22:08:31,883 - werkzeug - INFO - 127.0.0.1 - - [07/Nov/2024 22:08:31] "GET / HTTP/1.1" 200 -
-2024-11-07 22:24:23,478 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on http://127.0.0.1:5000
-2024-11-07 22:24:23,478 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2024-11-07 22:24:23,479 - werkzeug - INFO -  * Restarting with stat
-2024-11-07 22:24:23,604 - werkzeug - WARNING -  * Debugger is active!
-2024-11-07 22:24:23,609 - werkzeug - INFO -  * Debugger PIN: 981-239-810
-2024-11-07 22:32:34,419 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on http://127.0.0.1:5000
-2024-11-07 22:32:34,419 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2024-11-07 22:32:34,420 - werkzeug - INFO -  * Restarting with stat
-2024-11-07 22:32:34,548 - werkzeug - WARNING -  * Debugger is active!
-2024-11-07 22:32:34,553 - werkzeug - INFO -  * Debugger PIN: 981-239-810
-2024-11-07 22:39:47,069 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on http://127.0.0.1:5000
-2024-11-07 22:39:47,069 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2024-11-07 22:39:47,070 - werkzeug - INFO -  * Restarting with stat
-2024-11-07 22:39:47,195 - werkzeug - WARNING -  * Debugger is active!
-2024-11-07 22:39:47,199 - werkzeug - INFO -  * Debugger PIN: 981-239-810
-2024-11-08 10:43:17,465 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on http://127.0.0.1:5000
-2024-11-08 10:43:17,465 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2024-11-08 10:43:17,466 - werkzeug - INFO -  * Restarting with stat
-2024-11-08 10:43:17,589 - werkzeug - WARNING -  * Debugger is active!
-2024-11-08 10:43:17,594 - werkzeug - INFO -  * Debugger PIN: 981-239-810
-2024-11-08 10:45:58,428 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on http://127.0.0.1:5000
-2024-11-08 10:45:58,429 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2024-11-08 10:45:58,429 - werkzeug - INFO -  * Restarting with stat
-2024-11-08 10:45:58,558 - werkzeug - WARNING -  * Debugger is active!
-2024-11-08 10:45:58,562 - werkzeug - INFO -  * Debugger PIN: 981-239-810
-2024-11-08 11:21:29,716 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on http://127.0.0.1:5000
-2024-11-08 11:21:29,716 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2024-11-08 11:21:29,717 - werkzeug - INFO -  * Restarting with stat
-2024-11-08 11:21:29,841 - werkzeug - WARNING -  * Debugger is active!
-2024-11-08 11:21:29,848 - werkzeug - INFO -  * Debugger PIN: 981-239-810
-2024-11-08 11:29:01,296 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on http://127.0.0.1:5000
-2024-11-08 11:29:01,296 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2024-11-08 11:29:01,297 - werkzeug - INFO -  * Restarting with stat
-2024-11-08 11:29:01,422 - werkzeug - WARNING -  * Debugger is active!
-2024-11-08 11:29:01,428 - werkzeug - INFO -  * Debugger PIN: 981-239-810
-2024-11-08 11:29:32,413 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on http://127.0.0.1:5000
-2024-11-08 11:29:32,413 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2024-11-08 11:29:32,413 - werkzeug - INFO -  * Restarting with stat
-2024-11-08 11:29:32,538 - werkzeug - WARNING -  * Debugger is active!
-2024-11-08 11:29:32,543 - werkzeug - INFO -  * Debugger PIN: 981-239-810
-2024-11-08 11:30:15,308 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on http://127.0.0.1:5000
-2024-11-08 11:30:15,308 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2024-11-08 11:30:15,309 - werkzeug - INFO -  * Restarting with stat
-2024-11-08 11:30:15,430 - werkzeug - WARNING -  * Debugger is active!
-2024-11-08 11:30:15,434 - werkzeug - INFO -  * Debugger PIN: 981-239-810
-2024-11-08 11:31:43,965 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on http://127.0.0.1:5000
-2024-11-08 11:31:43,965 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2024-11-08 11:31:43,965 - werkzeug - INFO -  * Restarting with stat
-2024-11-08 11:31:44,088 - werkzeug - WARNING -  * Debugger is active!
-2024-11-08 11:31:44,092 - werkzeug - INFO -  * Debugger PIN: 981-239-810
-2024-11-08 11:48:36,146 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on http://127.0.0.1:5000
-2024-11-08 11:48:36,147 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2024-11-08 11:48:36,147 - werkzeug - INFO -  * Restarting with stat
-2024-11-08 11:48:36,270 - werkzeug - WARNING -  * Debugger is active!
-2024-11-08 11:48:36,277 - werkzeug - INFO -  * Debugger PIN: 981-239-810
-2024-11-08 11:59:11,903 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on http://127.0.0.1:5000
-2024-11-08 11:59:11,904 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2024-11-08 11:59:11,904 - werkzeug - INFO -  * Restarting with stat
-2024-11-08 11:59:12,029 - werkzeug - WARNING -  * Debugger is active!
-2024-11-08 11:59:12,033 - werkzeug - INFO -  * Debugger PIN: 981-239-810
-2024-11-08 11:59:49,872 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on http://127.0.0.1:5000
-2024-11-08 11:59:49,873 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2024-11-08 11:59:49,873 - werkzeug - INFO -  * Restarting with stat
-2024-11-08 11:59:49,997 - werkzeug - WARNING -  * Debugger is active!
-2024-11-08 11:59:50,000 - werkzeug - INFO -  * Debugger PIN: 981-239-810
-2024-11-08 12:00:14,215 - werkzeug - INFO -  * Detected change in '/Users/justinwitcoff/Test/136775783/my-project/app.py', reloading
-2024-11-08 12:00:14,257 - werkzeug - INFO -  * Restarting with stat
-2024-11-08 12:00:14,393 - werkzeug - WARNING -  * Debugger is active!
-2024-11-08 12:00:14,396 - werkzeug - INFO -  * Debugger PIN: 981-239-810
-2024-11-08 12:00:19,442 - werkzeug - INFO -  * Detected change in '/Users/justinwitcoff/Test/136775783/my-project/app.py', reloading
-2024-11-08 12:00:19,475 - werkzeug - INFO -  * Restarting with stat
-2024-11-08 12:00:19,620 - werkzeug - WARNING -  * Debugger is active!
-2024-11-08 12:00:19,624 - werkzeug - INFO -  * Debugger PIN: 981-239-810
-2024-11-08 12:00:41,774 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on http://127.0.0.1:8000
-2024-11-08 12:00:41,775 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2024-11-08 12:00:41,775 - werkzeug - INFO -  * Restarting with stat
-2024-11-08 12:00:41,895 - werkzeug - WARNING -  * Debugger is active!
-2024-11-08 12:00:41,899 - werkzeug - INFO -  * Debugger PIN: 981-239-810
-2024-11-08 12:01:04,526 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2024 12:01:04] "GET /test HTTP/1.1" 200 -
-2024-11-08 13:25:19,631 - __main__ - INFO - Incoming message from  12345678900: START
-2024-11-08 13:25:19,631 - __main__ - INFO - Sending response to  12345678900: Welcome to CS50 Coffee! Please select your drink:
-
-1. Espresso ($3.50)
-   Strong, pure coffee shot
-2. Latte ($4.50)
-   Espresso with steamed milk
-3. Cappuccino ($4.50)
-   Equal parts espresso, steamed milk, and foam
-4. Cold Brew ($4.50)
-   12-hour steeped coffee
-5. Iced Latte ($5.00)
-   Espresso over ice with cold milk
-6. Croissant ($3.50)
-   Butter croissant
-7. Muffin ($3.00)
-   Blueberry muffin
-
-2024-11-08 13:25:19,632 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2024 13:25:19] "POST /sms HTTP/1.1" 200 -
-2024-11-08 13:26:26,395 - __main__ - INFO - Incoming message from  12345678900: ADD 2
-2024-11-08 13:26:26,395 - __main__ - INFO - Sending response to  12345678900: Your Cart:
-
-1x Latte ($4.50 each)
-
-Total: $4.50
-
-Reply with:
-- ADD <number> to add more items
-- REMOVE <number> to remove items
-- DONE to checkout
-- CLEAR to empty cart
-2024-11-08 13:26:26,396 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2024 13:26:26] "POST /sms HTTP/1.1" 200 -
-2024-11-08 13:33:09,295 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on http://127.0.0.1:8000
-2024-11-08 13:33:09,295 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2024-11-08 13:33:09,295 - werkzeug - INFO -  * Restarting with stat
-2024-11-08 13:33:09,421 - werkzeug - WARNING -  * Debugger is active!
-2024-11-08 13:33:09,428 - werkzeug - INFO -  * Debugger PIN: 981-239-810
-2024-11-08 13:33:33,404 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2024 13:33:33] "GET / HTTP/1.1" 200 -
-2024-11-08 13:33:33,581 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2024 13:33:33] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
-2024-11-08 13:34:06,465 - __main__ - INFO - Incoming message from +18475713285: START
-2024-11-08 13:34:06,466 - __main__ - INFO - Sending response to +18475713285: Welcome to CS50 Coffee! Please select your drink:
-
-1. Espresso ($3.50)
-   Strong, pure coffee shot
-2. Latte ($4.50)
-   Espresso with steamed milk
-3. Cappuccino ($4.50)
-   Equal parts espresso, steamed milk, and foam
-4. Cold Brew ($4.50)
-   12-hour steeped coffee
-5. Iced Latte ($5.00)
-   Espresso over ice with cold milk
-6. Croissant ($3.50)
-   Butter croissant
-7. Muffin ($3.00)
-   Blueberry muffin
-
-2024-11-08 13:34:06,466 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2024 13:34:06] "POST /sms HTTP/1.1" 200 -
-2024-11-08 13:34:32,161 - __main__ - INFO - Incoming message from +18475713285: 1
-2024-11-08 13:34:32,163 - __main__ - INFO - Sending response to +18475713285: Sorry, I didn't understand that. Text 'MENU' to see options or 'HELP' for commands.
-2024-11-08 13:34:32,164 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2024 13:34:32] "POST /sms HTTP/1.1" 200 -
-2024-11-08 13:35:02,165 - __main__ - INFO - Incoming message from +18475713285: MENU
-2024-11-08 13:35:02,166 - __main__ - INFO - Sending response to +18475713285: Welcome to CS50 Coffee! Please select your drink:
-
-1. Espresso ($3.50)
-   Strong, pure coffee shot
-2. Latte ($4.50)
-   Espresso with steamed milk
-3. Cappuccino ($4.50)
-   Equal parts espresso, steamed milk, and foam
-4. Cold Brew ($4.50)
-   12-hour steeped coffee
-5. Iced Latte ($5.00)
-   Espresso over ice with cold milk
-6. Croissant ($3.50)
-   Butter croissant
-7. Muffin ($3.00)
-   Blueberry muffin
-
-2024-11-08 13:35:02,166 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2024 13:35:02] "POST /sms HTTP/1.1" 200 -
-2024-11-08 13:38:39,400 - werkzeug - INFO -  * Detected change in '/Users/justinwitcoff/Test/136775783/my-project/app.py', reloading
-2024-11-08 13:38:39,432 - werkzeug - INFO -  * Restarting with stat
-2024-11-08 13:38:39,622 - werkzeug - WARNING -  * Debugger is active!
-2024-11-08 13:38:39,627 - werkzeug - INFO -  * Debugger PIN: 981-239-810
-2024-11-08 13:40:38,505 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on http://127.0.0.1:8000
-2024-11-08 13:40:38,505 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2024-11-08 13:40:38,506 - werkzeug - INFO -  * Restarting with stat
-2024-11-08 13:40:38,630 - werkzeug - WARNING -  * Debugger is active!
-2024-11-08 13:40:38,635 - werkzeug - INFO -  * Debugger PIN: 981-239-810
-2024-11-08 13:40:40,584 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2024 13:40:40] "GET / HTTP/1.1" 200 -
-2024-11-08 13:40:42,490 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2024 13:40:42] "GET / HTTP/1.1" 200 -
-2024-11-08 13:40:53,363 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2024 13:40:53] "GET / HTTP/1.1" 200 -
-2024-11-08 13:41:23,610 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on http://127.0.0.1:8000
-2024-11-08 13:41:23,610 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2024-11-08 13:41:23,610 - werkzeug - INFO -  * Restarting with stat
-2024-11-08 13:41:23,736 - werkzeug - WARNING -  * Debugger is active!
-2024-11-08 13:41:23,741 - werkzeug - INFO -  * Debugger PIN: 981-239-810
-2024-11-08 13:41:25,728 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2024 13:41:25] "GET / HTTP/1.1" 200 -
-2024-11-08 13:41:46,444 - __main__ - INFO - Incoming message from +18475713285: START
-2024-11-08 13:41:46,444 - __main__ - INFO - Sending response to +18475713285: Welcome to CS50 Coffee! Order by number or name:
-
-1. Espresso ($3.50)
-   Strong, pure coffee shot
-2. Latte ($4.50)
-   Espresso with steamed milk
-3. Cappuccino ($4.50)
-   Equal parts espresso, steamed milk, and foam
-4. Cold Brew ($4.50)
-   12-hour steeped coffee
-5. Iced Latte ($5.00)
-   Espresso over ice with cold milk
-6. Croissant ($3.50)
-   Butter croissant
-7. Muffin ($3.00)
-   Blueberry muffin
-
-2024-11-08 13:41:46,445 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2024 13:41:46] "POST /sms HTTP/1.1" 200 -
-2024-11-08 13:42:00,319 - __main__ - INFO - Incoming message from +18475713285: Latte
-2024-11-08 13:42:00,320 - __main__ - INFO - Sending response to +18475713285: Your Cart:
-
-1x Latte ($4.50 each)
-
-Total: $4.50
-
-Reply with:
-- ADD <number> to add more items
-- REMOVE <number> to remove items
-- DONE to checkout
-- CLEAR to empty cart
-2024-11-08 13:42:00,321 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2024 13:42:00] "POST /sms HTTP/1.1" 200 -
-2024-11-08 13:42:13,265 - __main__ - INFO - Incoming message from +18475713285: ADD iced latte
-2024-11-08 13:42:13,266 - __main__ - INFO - Sending response to +18475713285: Sorry, I didn't understand that. Text 'MENU' to see options or 'HELP' for commands.
-2024-11-08 13:42:13,266 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2024 13:42:13] "POST /sms HTTP/1.1" 200 -
-2024-11-08 13:42:24,226 - __main__ - INFO - Incoming message from +18475713285: ADD Iced Latte
-2024-11-08 13:42:24,227 - __main__ - INFO - Sending response to +18475713285: Sorry, I didn't understand that. Text 'MENU' to see options or 'HELP' for commands.
-2024-11-08 13:42:24,227 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2024 13:42:24] "POST /sms HTTP/1.1" 200 -
-2024-11-08 13:42:40,609 - __main__ - INFO - Incoming message from +18475713285: ADD 5
-2024-11-08 13:42:40,610 - __main__ - INFO - Sending response to +18475713285: Your Cart:
-
-1x Latte ($4.50 each)
-1x Iced Latte ($5.00 each)
-
-Total: $9.50
-
-Reply with:
-- ADD <number> to add more items
-- REMOVE <number> to remove items
-- DONE to checkout
-- CLEAR to empty cart
-2024-11-08 13:42:40,610 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2024 13:42:40] "POST /sms HTTP/1.1" 200 -
-2024-11-08 13:42:48,696 - __main__ - INFO - Incoming message from +18475713285: DONE
-2024-11-08 13:42:48,696 - __main__ - INFO - Sending response to +18475713285: Total to be charged: $9.50
-
-To complete your order, please reply with the test credit card number:
-4242-4242-4242-4242
-2024-11-08 13:42:48,697 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2024 13:42:48] "POST /sms HTTP/1.1" 200 -
-2024-11-08 13:43:06,210 - __main__ - INFO - Incoming message from +18475713285: 4242-4242-4242-4242
-2024-11-08 13:43:06,211 - __main__ - INFO - Creating new order for +18475713285 with 2 items
-2024-11-08 13:43:06,211 - __main__ - INFO - Created order 71bef4d2 for +18475713285
-2024-11-08 13:43:06,211 - __main__ - INFO - Sending response to +18475713285: 🎉 Order #71bef4d2 confirmed!
-
-Order #71bef4d2 Status: ⏳ PENDING
-
-Items:
-- 1x Latte
-- 1x Iced Latte
-
-Total: $9.50
-
-Estimated ready: 01:58 PM
-
-Text 'STATUS' anytime to check your order.
-Text 'START' to place another order.
-2024-11-08 13:43:06,212 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2024 13:43:06] "POST /sms HTTP/1.1" 200 -
-2024-11-08 13:43:47,649 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2024 13:43:47] "[33mGET /apple-touch-icon-precomposed.png HTTP/1.1[0m" 404 -
-2024-11-08 13:43:47,650 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2024 13:43:47] "[33mGET /apple-touch-icon.png HTTP/1.1[0m" 404 -
-2024-11-08 13:43:47,650 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2024 13:43:47] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
-2024-11-08 13:43:47,795 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2024 13:43:47] "GET / HTTP/1.1" 200 -
-2024-11-08 13:45:20,905 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+2024-11-15 16:02:38,950 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2024-11-15 16:02:38,951 - werkzeug - INFO -  * Restarting with stat
+2024-11-15 16:02:39,246 - werkzeug - WARNING -  * Debugger is active!
+2024-11-15 16:02:39,256 - werkzeug - INFO -  * Debugger PIN: 981-239-810
+2024-11-15 16:03:10,504 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2024 16:03:10] "GET / HTTP/1.1" 200 -
+2024-11-15 16:03:10,769 - werkzeug - INFO - 127.0.0.1 - - [15/Nov/2024 16:03:10] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2024-11-16 16:52:24,041 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on all addresses (0.0.0.0)
  * Running on http://127.0.0.1:8000
  * Running on http://192.168.1.66:8000
-2024-11-08 13:45:20,905 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2024-11-08 13:45:20,906 - werkzeug - INFO -  * Restarting with stat
-2024-11-08 13:45:21,034 - werkzeug - WARNING -  * Debugger is active!
-2024-11-08 13:45:21,040 - werkzeug - INFO -  * Debugger PIN: 981-239-810
-2024-11-08 13:45:36,077 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2024 13:45:36] "GET / HTTP/1.1" 200 -
-2024-11-08 13:45:41,406 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2024 13:45:41] "[33mGET /apple-touch-icon-precomposed.png HTTP/1.1[0m" 404 -
-2024-11-08 13:45:41,406 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2024 13:45:41] "[33mGET /apple-touch-icon.png HTTP/1.1[0m" 404 -
-2024-11-08 13:45:41,407 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2024 13:45:41] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
-2024-11-08 13:45:41,452 - werkzeug - INFO - 127.0.0.1 - - [08/Nov/2024 13:45:41] "GET / HTTP/1.1" 200 -
-2024-11-08 13:46:27,656 - werkzeug - INFO - 192.168.1.66 - - [08/Nov/2024 13:46:27] "GET / HTTP/1.1" 200 -
-2024-11-08 13:46:27,832 - werkzeug - INFO - 192.168.1.66 - - [08/Nov/2024 13:46:27] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
-2024-11-08 13:46:33,534 - werkzeug - INFO - 192.168.1.66 - - [08/Nov/2024 13:46:33] "[33mGET /apple-touch-icon-precomposed.png HTTP/1.1[0m" 404 -
-2024-11-08 13:46:33,535 - werkzeug - INFO - 192.168.1.66 - - [08/Nov/2024 13:46:33] "[33mGET /apple-touch-icon.png HTTP/1.1[0m" 404 -
-2024-11-08 13:46:33,535 - werkzeug - INFO - 192.168.1.66 - - [08/Nov/2024 13:46:33] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
-2024-11-08 13:46:33,585 - werkzeug - INFO - 192.168.1.66 - - [08/Nov/2024 13:46:33] "GET / HTTP/1.1" 200 -
-2024-11-08 13:46:37,816 - werkzeug - INFO - 192.168.1.65 - - [08/Nov/2024 13:46:37] "GET / HTTP/1.1" 200 -
-2024-11-08 13:46:38,104 - werkzeug - INFO - 192.168.1.65 - - [08/Nov/2024 13:46:38] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
-2024-11-08 13:46:41,494 - werkzeug - INFO - 192.168.1.65 - - [08/Nov/2024 13:46:41] "GET / HTTP/1.1" 200 -
-2024-11-08 13:46:51,531 - werkzeug - INFO - 192.168.1.65 - - [08/Nov/2024 13:46:51] "[33mGET /apple-touch-icon-precomposed.png HTTP/1.1[0m" 404 -
-2024-11-08 13:46:51,533 - werkzeug - INFO - 192.168.1.65 - - [08/Nov/2024 13:46:51] "[33mGET /apple-touch-icon.png HTTP/1.1[0m" 404 -
-2024-11-08 13:46:51,533 - werkzeug - INFO - 192.168.1.65 - - [08/Nov/2024 13:46:51] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
-2024-11-08 13:46:51,534 - werkzeug - INFO - 192.168.1.65 - - [08/Nov/2024 13:46:51] "GET / HTTP/1.1" 200 -
-2024-11-08 13:47:35,824 - werkzeug - INFO - 192.168.1.65 - - [08/Nov/2024 13:47:35] "GET / HTTP/1.1" 200 -
-2024-11-08 13:50:25,544 - werkzeug - INFO - 192.168.1.65 - - [08/Nov/2024 13:50:25] "GET / HTTP/1.1" 200 -
-2024-11-08 13:50:40,636 - werkzeug - INFO - 192.168.1.65 - - [08/Nov/2024 13:50:40] "GET / HTTP/1.1" 200 -
-2024-11-08 13:53:39,685 - werkzeug - INFO - 192.168.1.65 - - [08/Nov/2024 13:53:39] "GET / HTTP/1.1" 200 -
-2024-11-11 22:19:28,138 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on all addresses (0.0.0.0)
- * Running on http://127.0.0.1:8000
- * Running on http://192.168.1.66:8000
-2024-11-11 22:19:28,138 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2024-11-11 22:19:28,139 - werkzeug - INFO -  * Restarting with stat
-2024-11-11 22:19:28,263 - werkzeug - WARNING -  * Debugger is active!
-2024-11-11 22:19:28,268 - werkzeug - INFO -  * Debugger PIN: 981-239-810
-2024-11-11 22:19:31,963 - werkzeug - INFO - 127.0.0.1 - - [11/Nov/2024 22:19:31] "GET / HTTP/1.1" 200 -
-2024-11-11 22:28:31,941 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on all addresses (0.0.0.0)
- * Running on http://127.0.0.1:8000
- * Running on http://192.168.1.66:8000
-2024-11-11 22:28:31,941 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2024-11-11 22:28:31,942 - werkzeug - INFO -  * Restarting with stat
-2024-11-11 22:28:32,239 - werkzeug - WARNING -  * Debugger is active!
-2024-11-11 22:28:32,245 - werkzeug - INFO -  * Debugger PIN: 981-239-810
-2024-11-11 22:29:45,500 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on all addresses (0.0.0.0)
- * Running on http://127.0.0.1:8000
- * Running on http://192.168.1.66:8000
-2024-11-11 22:29:45,500 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2024-11-11 22:29:45,500 - werkzeug - INFO -  * Restarting with stat
-2024-11-11 22:29:45,791 - werkzeug - WARNING -  * Debugger is active!
-2024-11-11 22:29:45,797 - werkzeug - INFO -  * Debugger PIN: 981-239-810
-2024-11-11 22:30:10,789 - __main__ - INFO - Incoming message from  1234567890: hello
-2024-11-11 22:30:11,187 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
-2024-11-11 22:30:11,188 - openai._base_client - INFO - Retrying request to /chat/completions in 0.454382 seconds
-2024-11-11 22:30:11,712 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
-2024-11-11 22:30:11,713 - openai._base_client - INFO - Retrying request to /chat/completions in 0.867023 seconds
-2024-11-11 22:30:12,641 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
-2024-11-11 22:30:12,644 - __main__ - ERROR - OpenAI API error: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}
-2024-11-11 22:30:12,644 - __main__ - INFO - Sending response to  1234567890: Welcome to Coffee S50! Order by number or name:
-
-1. Espresso ($3.50)
-   Strong, pure coffee shot
-2. Latte ($4.50)
-   Espresso with steamed milk
-3. Cappuccino ($4.50)
-   Equal parts espresso, steamed milk, and foam
-4. Cold Brew ($4.50)
-   12-hour steeped coffee
-5. Iced Latte ($5.00)
-   Espresso over ice with cold milk
-6. Croissant ($3.50)
-   Butter croissant
-7. Muffin ($3.00)
-   Blueberry muffin
-
-2024-11-11 22:30:12,645 - werkzeug - INFO - 127.0.0.1 - - [11/Nov/2024 22:30:12] "POST /sms HTTP/1.1" 200 -
-2024-11-11 22:53:05,834 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on all addresses (0.0.0.0)
- * Running on http://127.0.0.1:8000
- * Running on http://192.168.1.66:8000
-2024-11-11 22:53:05,834 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2024-11-11 22:53:05,835 - werkzeug - INFO -  * Restarting with stat
-2024-11-11 22:53:06,143 - werkzeug - WARNING -  * Debugger is active!
-2024-11-11 22:53:06,149 - werkzeug - INFO -  * Debugger PIN: 981-239-810
-2024-11-11 22:53:13,064 - werkzeug - INFO - 127.0.0.1 - - [11/Nov/2024 22:53:13] "GET / HTTP/1.1" 200 -
-2024-11-11 22:53:38,886 - werkzeug - INFO - 127.0.0.1 - - [11/Nov/2024 22:53:38] "GET / HTTP/1.1" 200 -
-2024-11-11 22:53:39,569 - werkzeug - INFO - 127.0.0.1 - - [11/Nov/2024 22:53:39] "[33mGET /test-openai HTTP/1.1[0m" 404 -
+2024-11-16 16:52:24,041 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2024-11-16 16:52:24,042 - werkzeug - INFO -  * Restarting with stat
+2024-11-16 16:52:24,325 - werkzeug - WARNING -  * Debugger is active!
+2024-11-16 16:52:24,332 - werkzeug - INFO -  * Debugger PIN: 981-239-810
+2024-11-16 16:53:46,021 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-11-16 16:53:46,021 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2024-11-16 16:53:46,022 - werkzeug - INFO -  * Restarting with stat
+2024-11-16 16:53:46,318 - werkzeug - WARNING -  * Debugger is active!
+2024-11-16 16:53:46,322 - werkzeug - INFO -  * Debugger PIN: 981-239-810
+2024-11-16 16:58:51,922 - werkzeug - INFO -  * Detected change in '/Users/justinwitcoff/Test/136775783/my-project/app.py', reloading
+2024-11-16 16:58:51,966 - werkzeug - INFO -  * Restarting with stat
+2024-11-16 16:58:52,394 - werkzeug - WARNING -  * Debugger is active!
+2024-11-16 16:58:52,400 - werkzeug - INFO -  * Debugger PIN: 981-239-810
+2024-11-16 16:59:49,222 - werkzeug - INFO -  * Detected change in '/Users/justinwitcoff/Test/136775783/my-project/app.py', reloading
+2024-11-16 16:59:49,274 - werkzeug - INFO -  * Restarting with stat
+2024-11-16 16:59:49,682 - werkzeug - WARNING -  * Debugger is active!
+2024-11-16 16:59:49,686 - werkzeug - INFO -  * Debugger PIN: 981-239-810
+2024-11-16 16:59:51,722 - werkzeug - INFO -  * Detected change in '/Users/justinwitcoff/Test/136775783/my-project/app.py', reloading
+2024-11-16 16:59:51,766 - werkzeug - INFO -  * Restarting with stat
+2024-11-16 16:59:52,084 - werkzeug - WARNING -  * Debugger is active!
+2024-11-16 16:59:52,088 - werkzeug - INFO -  * Debugger PIN: 981-239-810
+2024-11-16 17:06:40,321 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-11-16 17:06:40,321 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2024-11-16 17:06:40,322 - werkzeug - INFO -  * Restarting with stat
+2024-11-16 17:06:40,618 - werkzeug - WARNING -  * Debugger is active!
+2024-11-16 17:06:40,623 - werkzeug - INFO -  * Debugger PIN: 981-239-810
+2024-11-16 17:11:32,545 - werkzeug - INFO -  * Detected change in '/Users/justinwitcoff/Test/136775783/my-project/src/core/order.py', reloading
+2024-11-16 17:11:32,597 - werkzeug - INFO -  * Restarting with stat
+2024-11-16 17:11:33,019 - werkzeug - WARNING -  * Debugger is active!
+2024-11-16 17:11:33,024 - werkzeug - INFO -  * Debugger PIN: 981-239-810

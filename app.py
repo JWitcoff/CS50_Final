@@ -8,6 +8,9 @@ import uuid
 import os
 import openai
 from openai import OpenAI
+from src.core.dialogue import DialogueManager
+from src.core.order import OrderProcessor
+from src.core.payment import PaymentHandler
 
 
 app = Flask(__name__)
@@ -21,7 +24,6 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
-
 # Configuration
 TWILIO_ACCOUNT_SID = config('TWILIO_ACCOUNT_SID', default='')
 TWILIO_AUTH_TOKEN = config('TWILIO_AUTH_TOKEN', default='')
@@ -48,6 +50,9 @@ MENU = {
     '6': {'item': 'Croissant', 'price': 3.50, 'category': 'food', 'description': 'Butter croissant'},
     '7': {'item': 'Muffin', 'price': 3.00, 'category': 'food', 'description': 'Blueberry muffin'}
 }
+
+# Initialize services with menu
+dialogue_manager = DialogueManager(menu=MENU)
 
 # In-memory storage
 active_orders = {}  # Stores current shopping sessions
