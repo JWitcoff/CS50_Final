@@ -11,7 +11,10 @@ from openai import OpenAI
 from src.core.dialogue import DialogueManager
 from src.core.order import OrderProcessor
 from src.core.payment import PaymentHandler
+from dotenv import load_dotenv
 
+# Print the API key to verify it's loaded
+print(f"OPENAI_API_KEY: {os.getenv('OPENAI_API_KEY')}")
 
 app = Flask(__name__)
 

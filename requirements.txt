@@ -1,4 +1,4 @@
-Flask==3.0.0
+Flask==3.1.0
 twilio==8.10.0
 python-dotenv==1.0.0
 stripe==7.6.0

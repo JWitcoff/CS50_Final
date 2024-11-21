@@ -52,3 +52,23 @@
 2024-11-16 17:16:30,295 - werkzeug - INFO -  * Debugger PIN: 981-239-810
 2024-11-16 17:16:48,278 - werkzeug - INFO - 127.0.0.1 - - [16/Nov/2024 17:16:48] "GET / HTTP/1.1" 200 -
 2024-11-16 17:16:48,484 - werkzeug - INFO - 127.0.0.1 - - [16/Nov/2024 17:16:48] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2024-11-21 13:05:36,855 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8000
+ * Running on http://192.168.10.164:8000
+2024-11-21 13:05:36,855 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2024-11-21 13:05:36,856 - werkzeug - INFO -  * Restarting with stat
+2024-11-21 13:05:37,158 - werkzeug - WARNING -  * Debugger is active!
+2024-11-21 13:05:37,166 - werkzeug - INFO -  * Debugger PIN: 981-239-810
+2024-11-21 13:06:34,907 - werkzeug - INFO -  * Detected change in '/Users/justinwitcoff/Test/136775783/my-project/app.py', reloading
+2024-11-21 13:06:34,963 - werkzeug - INFO -  * Restarting with stat
+2024-11-21 13:06:35,350 - werkzeug - WARNING -  * Debugger is active!
+2024-11-21 13:06:35,354 - werkzeug - INFO -  * Debugger PIN: 981-239-810
+2024-11-21 13:06:44,229 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8000
+ * Running on http://192.168.10.164:8000
+2024-11-21 13:06:44,229 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2024-11-21 13:06:44,230 - werkzeug - INFO -  * Restarting with stat
+2024-11-21 13:06:44,521 - werkzeug - WARNING -  * Debugger is active!
+2024-11-21 13:06:44,525 - werkzeug - INFO -  * Debugger PIN: 981-239-810
