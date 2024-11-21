@@ -12,8 +12,9 @@ from src.core.dialogue import DialogueManager
 from src.core.order import OrderProcessor
 from src.core.payment import PaymentHandler
 from dotenv import load_dotenv
-# Print the API key to verify it's loaded
-print(f"OPENAI_API_KEY: {os.getenv('OPENAI_API_KEY')}")
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -34,7 +35,10 @@ TWILIO_PHONE_NUMBER = config('TWILIO_PHONE_NUMBER', default='')
 # Initialize Twilio client
 twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
-# Initialize OpenAI client
+# Debugging: Print the API key (remove or comment out in production)
+print("OPENAI_API_KEY:", config('OPENAI_API_KEY', default='Not Found'))
+
+# Initialize the OpenAI client
 client = OpenAI(api_key=config('OPENAI_API_KEY'))
 
 # Menu configuration
