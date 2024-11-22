@@ -28,18 +28,15 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 # Configuration
-TWILIO_ACCOUNT_SID = config('TWILIO_ACCOUNT_SID', default='')
-TWILIO_AUTH_TOKEN = config('TWILIO_AUTH_TOKEN', default='')
-TWILIO_PHONE_NUMBER = config('TWILIO_PHONE_NUMBER', default='')
+TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID', '')
+TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN', '')
+TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER', '')
 
 # Initialize Twilio client
 twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
-# Debugging: Print the API key (remove or comment out in production)
-print("OPENAI_API_KEY:", config('OPENAI_API_KEY', default='Not Found'))
-
 # Initialize the OpenAI client
-client = OpenAI(api_key=config('OPENAI_API_KEY'))
+client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 # Menu configuration
 MENU = {
@@ -345,10 +342,6 @@ def test():
 @app.route('/sms', methods=['POST'])
 def handle_sms():
     """Handle incoming SMS messages"""
-    print("=== Received SMS webhook! ===")
-    print(f"Headers: {dict(request.headers)}")
-    print(f"Form data: {dict(request.form)}")
-    
     phone_number = request.values.get('From', '')
     message_body = request.values.get('Body', '').strip()
     
@@ -382,5 +375,4 @@ def test_openai():
         return f"OpenAI API error: {str(e)}"
 
 if __name__ == '__main__':
-    print("Starting Flask server on port 8000...")
     app.run(host='0.0.0.0', port=8000, debug=True)
