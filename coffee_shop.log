@@ -104,3 +104,28 @@
 2024-11-21 16:49:29,340 - werkzeug - INFO -  * Restarting with stat
 2024-11-21 16:49:29,633 - werkzeug - WARNING -  * Debugger is active!
 2024-11-21 16:49:29,639 - werkzeug - INFO -  * Debugger PIN: 981-239-810
+2024-12-02 17:06:44,502 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:10000
+ * Running on http://10.0.0.27:10000
+2024-12-02 17:06:44,503 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2024-12-02 17:06:44,503 - werkzeug - INFO -  * Restarting with stat
+2024-12-02 17:06:44,967 - werkzeug - WARNING -  * Debugger is active!
+2024-12-02 17:06:44,978 - werkzeug - INFO -  * Debugger PIN: 128-157-069
+2024-12-02 17:06:51,269 - werkzeug - INFO - 127.0.0.1 - - [02/Dec/2024 17:06:51] "[33mGET / HTTP/1.1[0m" 404 -
+2024-12-02 17:06:51,286 - werkzeug - INFO - 127.0.0.1 - - [02/Dec/2024 17:06:51] "[33mGET /apple-touch-icon-precomposed.png HTTP/1.1[0m" 404 -
+2024-12-02 17:06:51,287 - werkzeug - INFO - 127.0.0.1 - - [02/Dec/2024 17:06:51] "[33mGET /apple-touch-icon.png HTTP/1.1[0m" 404 -
+2024-12-02 17:06:51,291 - werkzeug - INFO - 127.0.0.1 - - [02/Dec/2024 17:06:51] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2024-12-02 17:08:30,454 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:10000
+ * Running on http://10.0.0.27:10000
+2024-12-02 17:08:30,455 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2024-12-02 17:08:30,455 - werkzeug - INFO -  * Restarting with stat
+2024-12-02 17:08:30,920 - werkzeug - WARNING -  * Debugger is active!
+2024-12-02 17:08:30,928 - werkzeug - INFO -  * Debugger PIN: 128-157-069
+2024-12-02 17:08:34,313 - werkzeug - INFO - 127.0.0.1 - - [02/Dec/2024 17:08:34] "[33mGET / HTTP/1.1[0m" 404 -
+2024-12-02 17:08:41,082 - werkzeug - INFO -  * Detected change in '/Users/justinwitcoff/Test/136775783/my-project/app.py', reloading
+2024-12-02 17:08:41,156 - werkzeug - INFO -  * Restarting with stat
+2024-12-02 17:08:41,632 - werkzeug - WARNING -  * Debugger is active!
+2024-12-02 17:08:41,639 - werkzeug - INFO -  * Debugger PIN: 128-157-069

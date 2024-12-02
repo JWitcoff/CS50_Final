@@ -1,17 +1,28 @@
-from flask import Flask, request, render_template
-from twilio.twiml.messaging_response import MessagingResponse
-from twilio.rest import Client
-from decouple import config
+# Standard library imports
 from datetime import datetime, timedelta
 import logging
-import uuid
 import os
+import uuid
+
+# Third-party imports
+from decouple import config
+from dotenv import load_dotenv
+from flask import Flask, request, render_template, jsonify
 import openai
 from openai import OpenAI
+from twilio.twiml.messaging_response import MessagingResponse
+from twilio.rest import Client
+import stripe
+
+# Local/application imports
 from src.core.dialogue import DialogueManager
 from src.core.order import OrderProcessor
 from src.core.payment import PaymentHandler
-from dotenv import load_dotenv
+
+# Configuration Constants
+PORT = int(os.getenv('PORT', 10000))  # Default to 10000 for Render
+HOST = '0.0.0.0'
+STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET')
 
 # Load environment variables from .env file
 load_dotenv()
@@ -275,6 +286,87 @@ def process_message(phone_number, message):
     """Process incoming messages based on current order state"""
     message = message.lower().strip()
     
+    # Get the current order state and dialogue context
+    order_state = active_orders.get(phone_number, {}).get('state', 'MENU')
+    
+    # Handle card payment response with AI assistance
+    if order_state == 'AWAITING_CARD' and message.startswith('card '):
+        try:
+            # Parse card details from message
+            parts = message.split()
+            if len(parts) != 4:
+                # Get AI to explain the correct format
+                ai_response = dialogue_manager.get_ai_response(
+                    "explain payment format error",
+                    MENU,
+                    phone_number
+                )
+                return ai_response or "Invalid format. Please use: CARD [number] [MM/YY] [CVV]"
+            
+            _, card_number, expiry, cvv = parts
+            
+            # Basic validation with AI feedback
+            if not card_number.isdigit() or len(card_number) != 16:
+                ai_response = dialogue_manager.get_ai_response(
+                    "explain card number error",
+                    MENU,
+                    phone_number
+                )
+                return ai_response or "Invalid card number. Please enter a 16-digit number."
+            
+            if not cvv.isdigit() or len(cvv) != 3:
+                ai_response = dialogue_manager.get_ai_response(
+                    "explain cvv error",
+                    MENU,
+                    phone_number
+                )
+                return ai_response or "Invalid CVV. Please enter a 3-digit number."
+            
+            exp_month, exp_year = expiry.split('/')
+            
+            # Get payment intent ID from order state
+            payment_intent_id = active_orders[phone_number].get('payment_intent_id')
+            if not payment_intent_id:
+                return "Sorry, your payment session has expired. Please try again."
+
+            payment_handler = PaymentHandler()
+            result = payment_handler.confirm_card_payment(
+                payment_intent_id,
+                {
+                    'number': card_number,
+                    'exp_month': int(exp_month),
+                    'exp_year': int('20' + exp_year),
+                    'cvc': cvv
+                }
+            )
+
+            if result['success']:
+                # Complete the order with AI confirmation
+                confirmation = complete_order(phone_number, active_orders[phone_number]['cart'])
+                ai_response = dialogue_manager.get_ai_response(
+                    "confirm successful payment",
+                    MENU,
+                    phone_number
+                )
+                del active_orders[phone_number]
+                return f"{ai_response}\n\n{confirmation}"
+            else:
+                # Get AI to explain the error
+                ai_response = dialogue_manager.get_ai_response(
+                    "explain payment failure",
+                    MENU,
+                    phone_number
+                )
+                return ai_response or result['message']
+
+        except (ValueError, IndexError):
+            ai_response = dialogue_manager.get_ai_response(
+                "explain payment format error",
+                MENU,
+                phone_number
+            )
+            return ai_response or "Invalid card format. Please use: CARD [number] [MM/YY] [CVV]"
+
     # Initialize order if this is a new conversation
     if phone_number not in active_orders and message not in ['status', 'help']:
         active_orders[phone_number] = {
@@ -283,7 +375,7 @@ def process_message(phone_number, message):
             'last_action': None
         }
 
-    # Handle direct commands first
+    # Handle direct commands
     if message == 'status':
         if phone_number in completed_orders and completed_orders[phone_number]:
             latest_order = completed_orders[phone_number][-1]
@@ -304,6 +396,23 @@ def process_message(phone_number, message):
             return active_orders[phone_number]['cart'].get_summary()
         return "No active cart. Text 'START' to begin ordering."
 
+    if message.lower() == 'done':
+        if phone_number in active_orders and active_orders[phone_number]['cart'].items:
+            payment_handler = PaymentHandler()
+            result = payment_handler.process_payment(
+                Order(phone_number, active_orders[phone_number]['cart']), 
+                'credit'
+            )
+            
+            if result['success']:
+                # Store payment intent ID and update state
+                active_orders[phone_number]['payment_intent_id'] = result['payment_intent_id']
+                active_orders[phone_number]['state'] = 'AWAITING_CARD'
+                return result['message']
+            else:
+                return result['message']
+        return "Your cart is empty. Add some items first!"
+
     # Get AI response for general queries
     ai_response = get_ai_response(message, phone_number)
     if ai_response:
@@ -318,27 +427,115 @@ def process_message(phone_number, message):
                     cart.add_item(MENU[menu_id])
                     return f"{ai_response}\n\n{cart.get_summary()}"
 
-        # Handle payment confirmation
-        if order and order.get('state') == 'PAYMENT' and '4242' in message:
-            confirmation = complete_order(phone_number, cart)
-            del active_orders[phone_number]
-            return confirmation
-
         return ai_response
 
     # Fallback to original menu if AI fails
     return get_menu_message()
 
+# Add these functions before your routes
+
+def handle_successful_payment(payment_intent):
+    """Handle successful payment webhook"""
+    try:
+        order_id = payment_intent.metadata.get('order_id')
+        phone_number = payment_intent.metadata.get('phone_number')
+
+        if order_id and phone_number:
+            # Get AI to generate a friendly confirmation message
+            ai_response = dialogue_manager.get_ai_response(
+                "generate payment success message",
+                MENU,
+                phone_number
+            )
+            
+            # Send confirmation SMS
+            try:
+                twilio_client.messages.create(
+                    body=ai_response or f"Payment confirmed! Your order #{order_id} is now being prepared. We'll notify you when it's ready!",
+                    from_=TWILIO_PHONE_NUMBER,
+                    to=phone_number
+                )
+            except Exception as e:
+                logger.error(f"Failed to send success SMS: {str(e)}")
+
+            # Update order status in your system
+            if phone_number in active_orders:
+                if phone_number not in completed_orders:
+                    completed_orders[phone_number] = []
+                completed_orders[phone_number].append(active_orders[phone_number])
+                del active_orders[phone_number]
+
+        logger.info(f"Successfully processed payment for order {order_id}")
+        return True
+
+    except Exception as e:
+        logger.error(f"Error handling successful payment: {str(e)}")
+        return False
+
+def handle_failed_payment(payment_intent):
+    """Handle failed payment webhook"""
+    try:
+        phone_number = payment_intent.metadata.get('phone_number')
+        
+        if phone_number:
+            # Get AI to generate a friendly error message
+            ai_response = dialogue_manager.get_ai_response(
+                "generate payment failure message",
+                MENU,
+                phone_number
+            )
+            
+            # Send failure notification
+            try:
+                twilio_client.messages.create(
+                    body=ai_response or "Your payment was declined. Please try again with a different card by texting 'DONE'.",
+                    from_=TWILIO_PHONE_NUMBER,
+                    to=phone_number
+                )
+            except Exception as e:
+                logger.error(f"Failed to send failure SMS: {str(e)}")
+
+            # Reset payment state in active orders
+            if phone_number in active_orders:
+                active_orders[phone_number]['state'] = 'MENU'
+                active_orders[phone_number].pop('payment_intent_id', None)
+
+        logger.info(f"Handled failed payment for {phone_number}")
+        return True
+
+    except Exception as e:
+        logger.error(f"Error handling failed payment: {str(e)}")
+        return False
+
+def handle_canceled_payment(payment_intent):
+    """Handle canceled payment webhook"""
+    try:
+        phone_number = payment_intent.metadata.get('phone_number')
+        
+        if phone_number:
+            # Send cancellation notification
+            try:
+                twilio_client.messages.create(
+                    body="Your payment was canceled. Text 'DONE' to try again or 'HELP' for assistance.",
+                    from_=TWILIO_PHONE_NUMBER,
+                    to=phone_number
+                )
+            except Exception as e:
+                logger.error(f"Failed to send cancellation SMS: {str(e)}")
+
+            # Reset payment state
+            if phone_number in active_orders:
+                active_orders[phone_number]['state'] = 'MENU'
+                active_orders[phone_number].pop('payment_intent_id', None)
+
+        logger.info(f"Handled canceled payment for {phone_number}")
+        return True
+
+    except Exception as e:
+        logger.error(f"Error handling canceled payment: {str(e)}")
+        return False
+
 # Flask routes
-@app.route('/')
-def home():
-    """Render the home page"""
-    return render_template('index.html', menu=MENU, twilio_number=TWILIO_PHONE_NUMBER)
-
-@app.route('/test', methods=['GET'])
-def test():
-    return "Test route working!"
-
 @app.route('/sms', methods=['POST'])
 def handle_sms():
     """Handle incoming SMS messages"""
@@ -359,20 +556,43 @@ def handle_sms():
     
     return str(resp)
 
-@app.route('/test-openai', methods=['GET'])
-def test_openai():
-    """Test OpenAI connection and check credits"""
+@app.route('/webhook', methods=['POST'])
+def stripe_webhook():
+    """Handle Stripe webhook events"""
+    payload = request.get_data(as_text=True)
+    sig_header = request.headers.get('Stripe-Signature')
+
     try:
-        # Try to make a minimal API call
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": "Hi"}],
-            max_tokens=1
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, STRIPE_WEBHOOK_SECRET
         )
-        return "OpenAI API is working!"
+    except ValueError as e:
+        logger.error(f"Invalid payload: {str(e)}")
+        return jsonify({'error': 'Invalid payload'}), 400
+    except stripe.error.SignatureVerificationError as e:
+        logger.error(f"Invalid signature: {str(e)}")
+        return jsonify({'error': 'Invalid signature'}), 400
+
+    try:
+        if event['type'] == 'payment_intent.succeeded':
+            handle_successful_payment(event['data']['object'])
+        elif event['type'] == 'payment_intent.payment_failed':
+            handle_failed_payment(event['data']['object'])
+        elif event['type'] == 'payment_intent.canceled':
+            handle_canceled_payment(event['data']['object'])
+        
+        return jsonify({'status': 'success'}), 200
+        
     except Exception as e:
-        logger.error(f"OpenAI API error: {str(e)}", exc_info=True)
-        return f"OpenAI API error: {str(e)}"
+        logger.error(f"Error processing webhook: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+@app.route('/', methods=['GET'])
+def home():
+    """Handle requests to the root URL"""
+    return render_template('index.html', 
+                         twilio_number=TWILIO_PHONE_NUMBER,
+                         menu=MENU)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000, debug=True)
+    app.run(host=HOST, port=PORT, debug=True)
