@@ -47,8 +47,10 @@ TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER', '')
 # Initialize Twilio client
 twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
-# Initialize the OpenAI client
-client = OpenAI()
+# Initialize the OpenAI client with just the API key
+client = OpenAI(
+    api_key=os.getenv('OPENAI_API_KEY')
+)
 
 # Menu configuration
 MENU = {
