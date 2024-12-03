@@ -13,6 +13,7 @@ from openai import OpenAI
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
 import stripe
+import httpx
 
 # Local/application imports
 from src.core.dialogue import DialogueManager
@@ -47,7 +48,10 @@ TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER', '')
 twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
 # Initialize the OpenAI client
-client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+client = OpenAI(
+    api_key=os.getenv('OPENAI_API_KEY'),
+    http_client=httpx.Client()  # Use a basic client without proxy settings
+)
 
 # Menu configuration
 MENU = {
