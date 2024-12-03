@@ -48,10 +48,7 @@ TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER', '')
 twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
 # Initialize the OpenAI client
-client = OpenAI(
-    api_key=os.getenv('OPENAI_API_KEY'),
-    http_client=httpx.Client()  # Use a basic client without proxy settings
-)
+client = OpenAI()
 
 # Menu configuration
 MENU = {
@@ -597,6 +594,10 @@ def home():
     return render_template('index.html', 
                          twilio_number=TWILIO_PHONE_NUMBER,
                          menu=MENU)
+
+@app.route('/health')
+def health_check():
+    return 'OK', 200
 
 if __name__ == '__main__':
     app.run(host=HOST, port=PORT, debug=True)
