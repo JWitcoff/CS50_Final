@@ -18,6 +18,7 @@ import httpx
 from src.core.dialogue import DialogueManager
 from src.core.order import OrderProcessor
 from src.core.payment import PaymentHandler
+from src.core.enums import OrderStage
 
 # Configuration Constants
 PORT = int(os.getenv('PORT', 10000))
@@ -117,6 +118,7 @@ MENU = {
 # Initialize services
 dialogue_manager = DialogueManager(menu=MENU, modifiers=MODIFIERS)
 payment_handler = PaymentHandler()
+order_processor = OrderProcessor()
 
 # In-memory storage
 active_orders = {}  # Stores current shopping sessions
@@ -235,6 +237,36 @@ class Order:
             message += f"\nEstimated ready: {self.estimated_ready.strftime('%I:%M %p')}"
             
         return message
+
+def classify_confirmation(message):
+    """Use OpenAI to classify if a message is confirmatory"""
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": """You are a binary classifier for user intent. 
+                Respond ONLY with 'yes' or 'no'.
+                Determine if the following message indicates agreement, confirmation, or wanting to proceed.
+                Examples:
+                'yeah sure' -> 'yes'
+                'nah thanks' -> 'no'
+                'sounds good!' -> 'yes'
+                'i guess so' -> 'yes'
+                'not really' -> 'no'"""},
+                {"role": "user", "content": message}
+            ],
+            temperature=0.3,  # Lower temperature for more consistent responses
+            max_tokens=1
+        )
+        result = response.choices[0].message.content.strip().lower() == 'yes'
+        logger.info(f"Intent classification for '{message}': {result}")
+        return result
+    except Exception as e:
+        logger.error(f"OpenAI classification error: {str(e)}")
+        # Fall back to simple word matching if API fails
+        fallback = message.lower().strip('!.,') in ['yes', 'yeah', 'sure', 'ok']
+        logger.info(f"Falling back to simple classification for '{message}': {fallback}")
+        return fallback
 
 def process_message(phone_number, message):
     """Process incoming messages based on current order state"""
@@ -380,18 +412,10 @@ def process_message(phone_number, message):
 
     # Check for modifiers in the message
     if any(mod in message.lower() for mod in MODIFIERS['milk'].keys()):
-        # If it's a new order with a modifier
-        if phone_number not in active_orders:
-            active_orders[phone_number] = {
-                'state': 'AWAITING_MOD_CONFIRM',
-                'cart': ShoppingCart()
-            }
+        # Update the state to AWAITING_MOD_CONFIRM
+        active_orders[phone_number]['state'] = 'AWAITING_MOD_CONFIRM'
         
-        # Extract the base drink and modifier
-        base_drink = None
-        modifier = None
-        
-        # Find the drink
+        # Find the drink and modifier
         for menu_id, item in MENU.items():
             if item['item'].lower() in message.lower():
                 base_drink = MENU[menu_id]
@@ -430,6 +454,78 @@ def process_message(phone_number, message):
                     return f"{ai_response}\n\n{cart.get_summary()}"
 
         return ai_response
+
+    # Handle checkout command
+    if message.lower() in ['done', 'checkout', 'pay']:
+        if phone_number in active_orders:
+            cart = active_orders[phone_number]['cart']
+            if not cart.items:
+                return "Your cart is empty! Please add items before checking out."
+            
+            # Update order state
+            active_orders[phone_number]['state'] = 'CHECKOUT'
+            
+            # Show order summary and payment options
+            summary = cart.get_summary()
+            return (
+                f"Great! Here's your order summary:\n\n"
+                f"{summary}\n\n"
+                "How would you like to pay?\n"
+                "- Reply with 'card' for credit card\n"
+                "- Reply with 'cash' for cash payment"
+            )
+    
+    # Handle payment method selection
+    if phone_number in active_orders and active_orders[phone_number].get('state') == 'CHECKOUT':
+        result = payment_handler.process_payment(active_orders[phone_number]['cart'], message)
+        
+        if result['success']:
+            if 'card' in message.lower():
+                return result['message']  # Returns card input instructions
+            else:  # Cash payment
+                # Process the order
+                order = active_orders[phone_number]['cart']
+                order_processor.process_order(order)
+                
+                # Store in completed orders
+                completed_orders[phone_number] = active_orders[phone_number]
+                del active_orders[phone_number]
+                
+                return result['message']  # Returns cash payment confirmation
+        else:
+            return result['message']  # Returns payment method prompt
+
+    # Handle credit card input
+    if (phone_number in active_orders and 
+        active_orders[phone_number].get('state') == 'CHECKOUT' and 
+        message.upper().startswith('CARD')):
+        try:
+            # Parse card details
+            _, card_number, exp_date, cvv = message.split()
+            
+            # Validate card
+            is_valid, message = payment_handler.validate_card_details(card_number, exp_date, cvv)
+            
+            if is_valid:
+                # Process the order
+                order = active_orders[phone_number]['cart']
+                order_processor.process_order(order)
+                
+                # Store in completed orders
+                completed_orders[phone_number] = active_orders[phone_number]
+                del active_orders[phone_number]
+                
+                return (
+                    f"Payment processed successfully!\n"
+                    f"Your order number is #{order.id}\n"
+                    f"Estimated ready time: {order.estimated_ready.strftime('%I:%M %p')}"
+                )
+            else:
+                return message  # Returns validation error message
+                
+        except Exception as e:
+            logger.error(f"Card processing error: {str(e)}")
+            return "Invalid card format. Please use: CARD [number] [MM/YY] [CVV]"
 
     # Fallback to menu
     return get_menu_message()
