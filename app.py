@@ -107,7 +107,7 @@ MENU = {
     
     # Cold Drinks
     '4': {'item': 'Cold Brew', 'price': 4.50, 'category': 'cold', 'description': '12-hour steeped coffee'},
-    '5': {'item': 'Iced Latte', 'price': 5.00, 'category': 'cold', 'description': 'Espresso over ice with cold milk'},
+    '5': {'item': 'Iced Latte', 'price': 4.50, 'category': 'cold', 'description': 'Espresso over ice with cold milk'},
     
     # Food Items
     '6': {'item': 'Croissant', 'price': 3.50, 'category': 'food', 'description': 'Butter croissant'},
@@ -323,7 +323,17 @@ def process_message(phone_number, message):
 
     # Handle modifier confirmation
     if phone_number in active_orders and active_orders[phone_number].get('state') == 'AWAITING_MOD_CONFIRM':
-        if message.lower() in ['yes', 'y', 'ok', 'sure']:
+        logger.info(f"Handling modifier confirmation. Message: {message}")
+        
+        # More comprehensive list of affirmative responses
+        affirmative_responses = [
+            'yes', 'yeah', 'yep', 'sure', 'ok', 'okay', 'yup', 
+            'confirm', 'absolutely', 'definitely', 'please'
+        ]
+        
+        # Clean the message and check if any word matches
+        message_words = message.lower().strip('!.,').split()
+        if any(word in affirmative_responses for word in message_words):
             cart = active_orders[phone_number]['cart']
             mod = cart.pending_modifier
             pending_item = active_orders[phone_number]['pending_item']
@@ -336,10 +346,10 @@ def process_message(phone_number, message):
             active_orders[phone_number]['state'] = 'MENU'
             active_orders[phone_number]['pending_item'] = None
             
-            return f"Added {pending_item['item']} with {mod}!\n\n{cart.get_summary()}"
+            return cart.get_summary()
         
-        elif message.lower() in ['no', 'n', 'cancel']:
-            # Reset state
+        # More comprehensive list of negative responses
+        elif any(word in ['no', 'nah', 'nope', 'cancel', 'dont', "don't"] for word in message_words):
             cart = active_orders[phone_number]['cart']
             cart.pending_modifier = None
             active_orders[phone_number]['state'] = 'MENU'
