@@ -23,6 +23,29 @@ from src.core.payment import PaymentHandler
 PORT = int(os.getenv('PORT', 10000))
 HOST = '0.0.0.0'
 
+import logging
+import os
+from datetime import datetime
+import sys
+
+# Create logs directory if it doesn't exist
+os.makedirs('logs', exist_ok=True)
+
+# Configure logging with both file and console output
+log_filename = f"logs/coffee_shop_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(log_filename),  # Log to file
+        logging.StreamHandler(sys.stdout)   # Log to console/stdout
+    ],
+    force=True  # This ensures our configuration takes effect
+)
+
+logger = logging.getLogger(__name__)
+logger.info("=== Coffee Shop Application Starting ===")
+
 # Menu and Modifier configurations
 MODIFIERS = {
     'milk': {
@@ -201,14 +224,36 @@ class Order:
 
 def process_message(phone_number, message):
     """Process incoming messages based on current order state"""
-    logger.info(f"Processing message for {phone_number}")
-    logger.info(f"Message content: {message}")
+    logger.info(f"Starting to process message for {phone_number}")
+    logger.info(f"Raw message: {message}")
+    message = message.lower().strip()
+    logger.info(f"Processed message: {message}")
+    
+    # Add these debug statements
+    logger.info(f"Current active_orders before processing: {active_orders}")
+    logger.info(f"Current completed_orders before processing: {completed_orders}")
     
     # Get the current order state
     order = active_orders.get(phone_number, {})
     order_state = order.get('state', 'MENU')
     logger.info(f"Current order state: {order_state}")
-    
+    logger.info(f"Current active_orders: {active_orders}")
+
+    # Initialize order if this is a new conversation
+    if phone_number not in active_orders and message not in ['status', 'help']:
+        logger.info(f"Initializing new order for {phone_number}")
+        active_orders[phone_number] = {
+            'state': 'MENU',
+            'cart': ShoppingCart()
+        }
+        logger.info(f"Updated active_orders: {active_orders}")
+        return get_menu_message()
+
+    # Direct commands
+    if message == 'menu' or message == 'start':
+        logger.info("Sending menu message")
+        return get_menu_message()
+
     # Handle card payment response
     if order_state == 'AWAITING_CARD':
         if message.startswith('card '):
@@ -247,13 +292,6 @@ def process_message(phone_number, message):
         else:
             logger.info("Awaiting card payment - invalid format received")
             return "Please provide your card details in the format: CARD [number] [MM/YY] [CVV]"
-
-    # Initialize order if this is a new conversation
-    if phone_number not in active_orders and message not in ['status', 'help']:
-        active_orders[phone_number] = {
-            'state': 'MENU',
-            'cart': ShoppingCart()
-        }
 
     # Handle DONE command
     if message.lower() == 'done':
@@ -331,15 +369,16 @@ def handle_sms():
     phone_number = request.values.get('From', '')
     message_body = request.values.get('Body', '').strip()
     
-    logger.info(f"=== New Message ===")
+    logger.info(f"\n=== New Message ===")
     logger.info(f"From: {phone_number}")
     logger.info(f"Message: {message_body}")
+    logger.info(f"Active Orders: {active_orders}")  # Add this to see current state
     
     resp = MessagingResponse()
     
     try:
         response_message = process_message(phone_number, message_body.lower())
-        logger.info(f"Response: {response_message}")
+        logger.info(f"Generated Response: {response_message}")
         resp.message(response_message)
     except Exception as e:
         logger.error(f"Error processing message: {str(e)}", exc_info=True)
@@ -347,6 +386,7 @@ def handle_sms():
         logger.info(f"Error Response: {error_msg}")
         resp.message(error_msg)
     
+    logger.info(f"Final Response: {str(resp)}")
     logger.info("=== End Message ===\n")
     return str(resp)
 
