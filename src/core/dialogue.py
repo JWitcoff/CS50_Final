@@ -26,25 +26,31 @@ class DialogueManager:
 
     def get_ai_response(self, user_message, menu, phone_number):
         """Get AI-generated response based on user message and context"""
+        # Format modifier information
+        modifier_text = "\nModifiers Available:\n"
+        for mod_type, mods in self.modifiers.items():
+            modifier_text += f"\n{mod_type.title()}:\n"
+            for mod, price in mods.items():
+                modifier_text += f"- {mod} (+${price:.2f})\n"
+
         system_message = f"""You are a friendly coffee shop assistant. Here's our menu:
         {self.format_menu_for_ai(menu)}
+        
+        {modifier_text}
 
         Guidelines:
         1. Keep responses under 2 sentences unless showing menu
         2. Always show prices with 2 decimal places (e.g., $4.50)
         3. Use 1-2 emojis maximum
         4. For orders, guide users to use item numbers (1-7)
-        5. If users ask about unavailable items, suggest similar ones from our menu
+        5. If users ask about modifiers, confirm their costs
         6. Recognize commands: MENU, ADD, REMOVE, DONE, CLEAR, STATUS
         7. Be friendly but concise
+        8. When customers ask about modifications, always mention the additional cost
         
-        Common commands:
-        - MENU: Show full menu
-        - ADD <number>: Add item to cart
-        - REMOVE <number>: Remove item from cart
-        - DONE: Proceed to checkout
-        - CLEAR: Empty cart
-        - STATUS: Check order status"""
+        Available modifications:
+        - Milk options: almond milk (+$0.75), oat milk (+$0.75), soy milk (+$0.75)
+        - Shot options: extra shot (+$1.00), double shot (+$1.50)"""
 
         try:
             response = self.client.chat.completions.create(
@@ -59,7 +65,7 @@ class DialogueManager:
             return response.choices[0].message.content
         except Exception as e:
             logger.error(f"OpenAI API error: {str(e)}")
-            return "I'm having trouble understanding. Please try again or text MENU to see our options." 
+            return "I'm having trouble understanding. Please try again or text MENU to see our options."
 
     def _build_system_message(self, context, menu):
         # Add modifier information to system message

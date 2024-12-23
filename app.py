@@ -128,17 +128,31 @@ class ShoppingCart:
         self.total = 0.00
         self.pending_modifier = None  # Track pending modifier that needs confirmation
         
+    def validate_modifier(self, modifier):
+        """Validate that a modifier is available and return its price"""
+        for mod_type, mods in MODIFIERS.items():
+            if modifier in mods:
+                return True, mods[modifier]
+        return False, 0.0
+    
     def add_item(self, item, quantity=1, modifiers=None):
         """Add an item to cart with optional modifiers"""
         for _ in range(quantity):
-            item_copy = item.copy()  # Create a copy of the item
+            item_copy = item.copy()
             if modifiers:
-                item_copy['modifiers'] = modifiers
-                # Add modifier costs to item price
+                validated_mods = []
+                total_mod_price = 0.0
+                
                 for mod in modifiers:
-                    for mod_type, mod_prices in MODIFIERS.items():
-                        if mod in mod_prices:
-                            item_copy['price'] += mod_prices[mod]
+                    is_valid, mod_price = self.validate_modifier(mod)
+                    if is_valid:
+                        validated_mods.append(mod)
+                        total_mod_price += mod_price
+                
+                if validated_mods:
+                    item_copy['modifiers'] = validated_mods
+                    item_copy['price'] += total_mod_price
+                    
             self.items.append(item_copy)
             self.total += item_copy['price']
             
@@ -308,18 +322,29 @@ def process_message(phone_number, message):
         return "Your cart is empty. Add some items first!"
 
     # Handle modifier confirmation
-    if order_state == 'AWAITING_MOD_CONFIRM':
-        if message in ['yes', 'y', 'ok', 'sure']:
-            cart = order['cart']
+    if phone_number in active_orders and active_orders[phone_number].get('state') == 'AWAITING_MOD_CONFIRM':
+        if message.lower() in ['yes', 'y', 'ok', 'sure']:
+            cart = active_orders[phone_number]['cart']
             mod = cart.pending_modifier
-            cart.add_item(order['pending_item'], modifiers=[mod])
+            pending_item = active_orders[phone_number]['pending_item']
+            
+            # Add item with modifier
+            cart.add_item(pending_item, modifiers=[mod])
+            
+            # Reset state
             cart.pending_modifier = None
-            order['state'] = 'MENU'
-            return f"Added {order['pending_item']['item']} with {mod}!\n\n{cart.get_summary()}"
-        elif message in ['no', 'n', 'cancel']:
-            cart = order['cart']
+            active_orders[phone_number]['state'] = 'MENU'
+            active_orders[phone_number]['pending_item'] = None
+            
+            return f"Added {pending_item['item']} with {mod}!\n\n{cart.get_summary()}"
+        
+        elif message.lower() in ['no', 'n', 'cancel']:
+            # Reset state
+            cart = active_orders[phone_number]['cart']
             cart.pending_modifier = None
-            order['state'] = 'MENU'
+            active_orders[phone_number]['state'] = 'MENU'
+            active_orders[phone_number]['pending_item'] = None
+            
             return "Cancelled modification. Would you like to try something else?"
 
     # Handle direct commands
@@ -342,6 +367,43 @@ def process_message(phone_number, message):
         if phone_number in active_orders:
             return active_orders[phone_number]['cart'].get_summary()
         return "No active cart. Text 'START' to begin ordering."
+
+    # Check for modifiers in the message
+    if any(mod in message.lower() for mod in MODIFIERS['milk'].keys()):
+        # If it's a new order with a modifier
+        if phone_number not in active_orders:
+            active_orders[phone_number] = {
+                'state': 'AWAITING_MOD_CONFIRM',
+                'cart': ShoppingCart()
+            }
+        
+        # Extract the base drink and modifier
+        base_drink = None
+        modifier = None
+        
+        # Find the drink
+        for menu_id, item in MENU.items():
+            if item['item'].lower() in message.lower():
+                base_drink = MENU[menu_id]
+                break
+        
+        # Find the modifier
+        for mod in MODIFIERS['milk'].keys():
+            if mod in message.lower():
+                modifier = mod
+                break
+        
+        if base_drink and modifier:
+            # Store the pending item and modifier
+            active_orders[phone_number]['pending_item'] = base_drink
+            active_orders[phone_number]['cart'].pending_modifier = modifier
+            
+            # Ask for confirmation
+            return (
+                f"Would you like {base_drink['item']} with {modifier}? "
+                f"This will add ${MODIFIERS['milk'][modifier]:.2f} to your order.\n\n"
+                f"Reply with 'yes' to confirm or 'no' to cancel."
+            )
 
     # Get AI response for general queries
     ai_response = dialogue_manager.get_ai_response(message, MENU, phone_number)
