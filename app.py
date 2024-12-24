@@ -212,6 +212,17 @@ def process_message(phone_number, message):
     logger.info(f"Current active_orders before processing: {active_orders}")
     logger.info(f"Current completed_orders before processing: {completed_orders}")
     
+    # Handle START command
+    if message == 'start':
+        # Initialize new order
+        active_orders[phone_number] = {
+            'state': OrderStage.MENU,
+            'cart': ShoppingCart(),
+            'order_queue': OrderQueue()
+        }
+        session_manager.update_session_state(phone_number, OrderStage.MENU)
+        return get_menu_message()  # Return the menu message
+    
     # Initialize or get session state
     current_state = session_manager.get_session_state(phone_number)
     
