@@ -20,6 +20,8 @@ from src.core.order import OrderProcessor
 from src.core.payment import PaymentHandler
 from src.core.enums import OrderStage
 from src.core.session import SessionManager
+from src.core.config import MENU, MODIFIERS
+from src.core.cart import ShoppingCart, CartItem
 
 # Configuration Constants
 PORT = int(os.getenv('PORT', 10000))
@@ -47,19 +49,6 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 logger.info("=== Coffee Shop Application Starting ===")
-
-# Menu and Modifier configurations
-MODIFIERS = {
-    'milk': {
-        'almond milk': 0.75,
-        'oat milk': 0.75,
-        'soy milk': 0.75
-    },
-    'shots': {
-        'extra shot': 1.00,
-        'double shot': 1.50
-    }
-}
 
 # Load environment variables from .env file
 load_dotenv()
@@ -100,22 +89,6 @@ client = OpenAI(
     api_key=os.getenv('OPENAI_API_KEY')
 )
 
-# Menu configuration with formatted prices
-MENU = {
-    # Hot Drinks
-    '1': {'item': 'Espresso', 'price': 3.50, 'category': 'hot', 'description': 'Strong, pure coffee shot'},
-    '2': {'item': 'Latte', 'price': 4.50, 'category': 'hot', 'description': 'Espresso with steamed milk'},
-    '3': {'item': 'Cappuccino', 'price': 4.50, 'category': 'hot', 'description': 'Equal parts espresso, steamed milk, and foam'},
-    
-    # Cold Drinks
-    '4': {'item': 'Cold Brew', 'price': 4.50, 'category': 'cold', 'description': '12-hour steeped coffee'},
-    '5': {'item': 'Iced Latte', 'price': 4.50, 'category': 'cold', 'description': 'Espresso over ice with cold milk'},
-    
-    # Food Items
-    '6': {'item': 'Croissant', 'price': 3.50, 'category': 'food', 'description': 'Butter croissant'},
-    '7': {'item': 'Muffin', 'price': 3.00, 'category': 'food', 'description': 'Blueberry muffin'}
-}
-
 # Initialize services
 dialogue_manager = DialogueManager(menu=MENU, modifiers=MODIFIERS)
 payment_handler = PaymentHandler()
@@ -127,79 +100,6 @@ completed_orders = {}  # Stores completed orders for tracking
 
 # Initialize session manager
 session_manager = SessionManager()
-
-class ShoppingCart:
-    def __init__(self):
-        self.items = []
-        self.total = 0.00
-        self.pending_modifier = None  # Track pending modifier that needs confirmation
-        
-    def validate_modifier(self, modifier):
-        """Validate that a modifier is available and return its price"""
-        for mod_type, mods in MODIFIERS.items():
-            if modifier in mods:
-                return True, mods[modifier]
-        return False, 0.0
-    
-    def add_item(self, item, quantity=1, modifiers=None):
-        """Add an item to cart with optional modifiers"""
-        for _ in range(quantity):
-            item_copy = item.copy()
-            if modifiers:
-                validated_mods = []
-                total_mod_price = 0.0
-                
-                for mod in modifiers:
-                    is_valid, mod_price = self.validate_modifier(mod)
-                    if is_valid:
-                        validated_mods.append(mod)
-                        total_mod_price += mod_price
-                
-                if validated_mods:
-                    item_copy['modifiers'] = validated_mods
-                    item_copy['price'] += total_mod_price
-                    
-            self.items.append(item_copy)
-            self.total += item_copy['price']
-            
-    def remove_item(self, item_id):
-        """Remove an item from cart"""
-        for item in self.items:
-            if str(item_id) in MENU and MENU[str(item_id)]['item'] == item['item']:
-                self.items.remove(item)
-                self.total -= item['price']
-                return True
-        return False
-    
-    def clear(self):
-        """Clear the cart"""
-        self.items = []
-        self.total = 0.00
-    
-    def get_summary(self):
-        """Get cart summary"""
-        if not self.items:
-            return "Your cart is empty. Text 'MENU' to see options."
-        
-        # Count quantities of each item
-        items_count = {}
-        for item in self.items:
-            items_count[item['item']] = items_count.get(item['item'], 0) + 1
-        
-        # Format summary message with proper decimal places
-        summary = "Your Cart:\n\n"
-        for item_name, quantity in items_count.items():
-            price = next(item['price'] for item in self.items if item['item'] == item_name)
-            summary += f"{quantity}x {item_name} (${price:.2f} each)\n"
-        
-        summary += f"\nTotal: ${self.total:.2f}\n"
-        summary += "\nReply with:\n"
-        summary += "- ADD <number> to add more items\n"
-        summary += "- REMOVE <number> to remove items\n"
-        summary += "- DONE to checkout\n"
-        summary += "- CLEAR to empty cart"
-        
-        return summary
 
 class Order:
     def __init__(self, phone_number, cart):

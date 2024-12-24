@@ -1,4 +1,13 @@
 from decimal import Decimal
+from enum import Enum
+
+class OrderStage(Enum):
+    MENU = "menu"
+    MODIFICATIONS = "modifications"
+    CHECKOUT = "checkout"
+    PAYMENT = "payment"
+    AWAITING_CARD = "awaiting_card"
+    COMPLETED = "completed"
 
 MODIFIERS = {
     'milk': {
@@ -19,14 +28,4 @@ MENU = {
 }
 
 # Session timeout in minutes
-SESSION_TIMEOUT = 30
-
-# Order states
-ORDER_STATES = [
-    'MENU',
-    'MODIFICATIONS',
-    'CHECKOUT',
-    'PAYMENT',
-    'AWAITING_CARD',
-    'COMPLETED'
-] 
+SESSION_TIMEOUT = 30 
