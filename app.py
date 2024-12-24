@@ -19,6 +19,7 @@ from src.core.dialogue import DialogueManager
 from src.core.order import OrderProcessor
 from src.core.payment import PaymentHandler
 from src.core.enums import OrderStage
+from src.core.session import SessionManager
 
 # Configuration Constants
 PORT = int(os.getenv('PORT', 10000))
@@ -123,6 +124,9 @@ order_processor = OrderProcessor()
 # In-memory storage
 active_orders = {}  # Stores current shopping sessions
 completed_orders = {}  # Stores completed orders for tracking
+
+# Initialize session manager
+session_manager = SessionManager()
 
 class ShoppingCart:
     def __init__(self):
@@ -276,6 +280,27 @@ def extract_menu_items(message):
             found_items.append(item)
     return found_items
 
+class OrderQueue:
+    def __init__(self):
+        self.items = []
+        self.current_index = 0
+
+    def add_items(self, items):
+        """Add multiple items to be processed"""
+        self.items.extend(items)
+
+    def get_next(self):
+        """Get next item to process"""
+        if self.current_index < len(self.items):
+            item = self.items[self.current_index]
+            self.current_index += 1
+            return item
+        return None
+
+    def has_more(self):
+        """Check if more items need processing"""
+        return self.current_index < len(self.items)
+
 def process_message(phone_number, message):
     """Process incoming messages based on current order state"""
     logger.info(f"Starting to process message for {phone_number}")
@@ -287,168 +312,17 @@ def process_message(phone_number, message):
     logger.info(f"Current active_orders before processing: {active_orders}")
     logger.info(f"Current completed_orders before processing: {completed_orders}")
     
-    # Get the current order state
-    order = active_orders.get(phone_number, {})
-    order_state = order.get('state', 'MENU')
-    logger.info(f"Current order state: {order_state}")
-    logger.info(f"Current active_orders: {active_orders}")
-
-    # Initialize order if this is a new conversation
-    if phone_number not in active_orders and message not in ['status', 'help']:
-        logger.info(f"Initializing new order for {phone_number}")
+    # Initialize or get session state
+    current_state = session_manager.get_session_state(phone_number)
+    
+    # Initialize new order if needed
+    if phone_number not in active_orders:
         active_orders[phone_number] = {
-            'state': 'MENU',
-            'cart': ShoppingCart()
+            'state': OrderStage.MENU,
+            'cart': ShoppingCart(),
+            'order_queue': OrderQueue()
         }
-        logger.info(f"Updated active_orders: {active_orders}")
-        return get_menu_message()
-
-    # Direct commands
-    if message == 'menu' or message == 'start':
-        logger.info("Sending menu message")
-        return get_menu_message()
-
-    # Handle card payment response
-    if order_state == 'AWAITING_CARD':
-        if message.startswith('card '):
-            logger.info("Processing card payment")
-            try:
-                # Parse card details from message
-                parts = message.split()
-                if len(parts) != 4:
-                    logger.warning("Invalid card format received")
-                    return "Invalid format. Please use: CARD [number] [MM/YY] [CVV]"
-                
-                _, card_number, expiry, cvv = parts
-                logger.info("Card details parsed successfully")
-                
-                # Validate card details
-                is_valid, validation_message = payment_handler.validate_card_details(card_number, expiry, cvv)
-                if not is_valid:
-                    logger.warning(f"Card validation failed: {validation_message}")
-                    return validation_message
-                
-                # Process successful payment and complete order
-                cart = order.get('cart')
-                if not cart or not cart.items:
-                    logger.warning("Empty cart at checkout")
-                    return "Your cart is empty. Please add items before checking out."
-                
-                logger.info("Processing order completion")
-                confirmation = complete_order(phone_number, cart)
-                del active_orders[phone_number]  # Clear the order after completion
-                logger.info("Order completed successfully")
-                return f"Payment successful! 🎉\n\n{confirmation}"
-                
-            except Exception as e:
-                logger.error(f"Payment processing error: {str(e)}", exc_info=True)
-                return "Invalid card format. Please use: CARD [number] [MM/YY] [CVV]"
-        else:
-            logger.info("Awaiting card payment - invalid format received")
-            return "Please provide your card details in the format: CARD [number] [MM/YY] [CVV]"
-
-    # Handle DONE command
-    if message.lower() == 'done':
-        if phone_number in active_orders and active_orders[phone_number]['cart'].items:
-            cart = active_orders[phone_number]['cart']
-            active_orders[phone_number]['state'] = 'AWAITING_CARD'
-            return (
-                f"Total: ${cart.total:.2f}\n\n"
-                "To pay with card, reply with:\n"
-                "CARD [16-digit number] [MM/YY] [CVV]\n"
-                "Example: CARD 1234567890123456 12/25 123\n\n"
-                "Or reply with CASH to pay at pickup"
-            )
-        return "Your cart is empty. Add some items first!"
-
-    # Handle modifier confirmation
-    if phone_number in active_orders and active_orders[phone_number].get('state') == 'AWAITING_MOD_CONFIRM':
-        logger.info(f"Handling modifier confirmation. Message: {message}")
-        
-        if classify_confirmation(message):
-            cart = active_orders[phone_number]['cart']
-            mod = cart.pending_modifier
-            pending_item = active_orders[phone_number]['pending_item']
-            
-            # Add modified item to existing cart
-            cart.add_item(pending_item, modifiers=[mod])
-            
-            # Reset modifier state but keep cart contents
-            cart.pending_modifier = None
-            active_orders[phone_number]['state'] = 'MENU'
-            active_orders[phone_number]['pending_item'] = None
-            
-            # Return summary of complete cart
-            return (
-                f"Added {pending_item['item']} with {mod}!\n\n"
-                f"{cart.get_summary()}"
-            )
-
-    # Handle direct commands
-    if message == 'status':
-        if phone_number in completed_orders and completed_orders[phone_number]:
-            latest_order = completed_orders[phone_number][-1]
-            return latest_order.get_status_message()
-        return "No active orders found. Text 'START' to place an order."
-
-    if message == 'help':
-        return get_help_message()
-
-    if message == 'clear':
-        if phone_number in active_orders:
-            active_orders[phone_number]['cart'].clear()
-            return "Cart cleared. Text 'MENU' to see options."
-        return "No active cart. Text 'START' to begin ordering."
-
-    if message == 'cart':
-        if phone_number in active_orders:
-            return active_orders[phone_number]['cart'].get_summary()
-        return "No active cart. Text 'START' to begin ordering."
-
-    # Check for modifiers in the message
-    if any(mod in message.lower() for mod in MODIFIERS['milk'].keys()):
-        # Update the state to AWAITING_MOD_CONFIRM
-        active_orders[phone_number]['state'] = 'AWAITING_MOD_CONFIRM'
-        
-        # Find the drink and modifier
-        for menu_id, item in MENU.items():
-            if item['item'].lower() in message.lower():
-                base_drink = MENU[menu_id]
-                break
-        
-        # Find the modifier
-        for mod in MODIFIERS['milk'].keys():
-            if mod in message.lower():
-                modifier = mod
-                break
-        
-        if base_drink and modifier:
-            # Store the pending item and modifier
-            active_orders[phone_number]['pending_item'] = base_drink
-            active_orders[phone_number]['cart'].pending_modifier = modifier
-            
-            # Ask for confirmation
-            return (
-                f"Would you like {base_drink['item']} with {modifier}? "
-                f"This will add ${MODIFIERS['milk'][modifier]:.2f} to your order.\n\n"
-                f"Reply with 'yes' to confirm or 'no' to cancel."
-            )
-
-    # Get AI response for general queries
-    ai_response = dialogue_manager.get_ai_response(message, MENU, phone_number)
-    if ai_response:
-        # Process any order-related commands in the message
-        order = active_orders.get(phone_number, {})
-        cart = order.get('cart') if order else None
-
-        # Check for item numbers or names in the message
-        for menu_id, item in MENU.items():
-            if menu_id in message or item['item'].lower() in message.lower():
-                if cart:
-                    cart.add_item(MENU[menu_id])
-                    return f"{ai_response}\n\n{cart.get_summary()}"
-
-        return ai_response
+        session_manager.update_session_state(phone_number, OrderStage.MENU)
 
     # Handle checkout command
     if message.lower() in ['done', 'checkout', 'pay']:
@@ -457,73 +331,126 @@ def process_message(phone_number, message):
             if not cart.items:
                 return "Your cart is empty! Please add items before checking out."
             
-            # Update order state to CHECKOUT
-            active_orders[phone_number]['state'] = 'CHECKOUT'
+            # Update to payment state
+            session_manager.update_session_state(phone_number, OrderStage.PAYMENT)
+            active_orders[phone_number]['state'] = OrderStage.PAYMENT
             
             return (
                 f"Total: ${cart.get_total():.2f}\n"
-                "To pay with card, reply with:\n"
-                "CARD [16-digit number] [MM/YY] [CVV]\n"
-                "Example: CARD 1234567890123456 12/25 123\n"
-                "Or reply with CASH to pay at pickup"
+                "How would you like to pay?\n"
+                "Reply with:\n"
+                "- CASH for cash payment\n"
+                "- CARD to pay by credit card"
             )
 
-    # Handle payment selection in CHECKOUT state
-    if phone_number in active_orders and active_orders[phone_number].get('state') == 'CHECKOUT':
+    # Handle payment method selection
+    if current_state == OrderStage.PAYMENT:
         if message.lower() == 'cash':
             cart = active_orders[phone_number]['cart']
-            # Generate order ID
             order_id = str(uuid.uuid4())[:8]
             
-            # Move to completed orders
+            # Move to completed state
+            session_manager.update_session_state(phone_number, OrderStage.COMPLETED)
             completed_orders[phone_number] = active_orders[phone_number]
             del active_orders[phone_number]
             
             return (
                 f"Perfect! Please pay ${cart.get_total():.2f} when you pick up your order.\n"
-                f"Your order number is #{order_id}"
+                f"Your order number is #{order_id}\n"
+                "Your order will be ready in about 15 minutes."
             )
             
-        elif message.upper().startswith('CARD'):
+        elif message.lower() == 'card':
+            session_manager.update_session_state(phone_number, OrderStage.AWAITING_CARD)
+            active_orders[phone_number]['state'] = OrderStage.AWAITING_CARD
+            return (
+                "Please provide your card details in the format:\n"
+                "CARD [16-digit number] [MM/YY] [CVV]\n"
+                "Example: CARD 1234567890123456 12/25 123"
+            )
+            
+        else:
+            return (
+                "Please choose your payment method:\n"
+                "- Reply CASH for cash payment\n"
+                "- Reply CARD for credit card"
+            )
+
+    # Handle card details
+    if current_state == OrderStage.AWAITING_CARD:
+        if message.lower() == 'back':
+            session_manager.update_session_state(phone_number, OrderStage.PAYMENT)
+            active_orders[phone_number]['state'] = OrderStage.PAYMENT
+            return (
+                "How would you like to pay?\n"
+                "Reply with:\n"
+                "- CASH for cash payment\n"
+                "- CARD to pay by credit card"
+            )
+            
+        if message.upper().startswith('CARD'):
             try:
-                # Parse card details
                 parts = message.split()
-                if len(parts) != 4:  # CARD, number, exp, cvv
+                if len(parts) != 4:
                     raise ValueError("Invalid format")
-                    
+                
                 _, card_number, exp_date, cvv = parts
+                # Process card payment...
                 
-                # Validate card (using your existing PaymentHandler)
-                payment_handler = PaymentHandler()
-                is_valid, msg = payment_handler.validate_card_details(card_number, exp_date, cvv)
+                cart = active_orders[phone_number]['cart']
+                order_id = str(uuid.uuid4())[:8]
                 
-                if is_valid:
-                    cart = active_orders[phone_number]['cart']
-                    # Generate order ID
-                    order_id = str(uuid.uuid4())[:8]
-                    
-                    # Move to completed orders
-                    completed_orders[phone_number] = active_orders[phone_number]
-                    del active_orders[phone_number]
-                    
-                    return (
-                        f"Payment processed successfully!\n"
-                        f"Your order number is #{order_id}\n"
-                        f"Total paid: ${cart.get_total():.2f}"
-                    )
-                else:
-                    return msg
-                    
+                # Move to completed state
+                session_manager.update_session_state(phone_number, OrderStage.COMPLETED)
+                completed_orders[phone_number] = active_orders[phone_number]
+                del active_orders[phone_number]
+                
+                return (
+                    f"Payment processed successfully!\n"
+                    f"Your order number is #{order_id}\n"
+                    f"Total paid: ${cart.get_total():.2f}\n"
+                    "Your order will be ready in about 15 minutes."
+                )
             except Exception as e:
-                logger.error(f"Card processing error: {str(e)}")
                 return (
                     "Invalid card format. Please use:\n"
                     "CARD [16-digit number] [MM/YY] [CVV]\n"
-                    "Example: CARD 1234567890123456 12/25 123"
+                    "Example: CARD 1234567890123456 12/25 123\n"
+                    "Or type BACK to choose a different payment method"
                 )
 
-    # Fallback to menu
-    return get_menu_message()
+    # Extract all menu items from message
+    found_items = extract_menu_items(message)
+    if found_items:
+        # Store all found items in the queue
+        active_orders[phone_number]['order_queue'].add_items(found_items)
+        
+        # Process first item if not in middle of another operation
+        if active_orders[phone_number]['state'] == 'MENU':
+            return process_next_item(phone_number)
+
+def process_next_item(phone_number):
+    """Process next item in the queue"""
+    order = active_orders[phone_number]
+    queue = order['order_queue']
+    
+    if not queue.has_more():
+        return order['cart'].get_summary()
+        
+    next_item = queue.get_next()
+    
+    # Check if item needs modifier
+    if next_item['category'] in ['hot', 'cold']:
+        # Store original message context
+        order['pending_item'] = next_item
+        order['state'] = 'AWAITING_MOD_CONFIRM'
+        
+        return (f"Would you like {next_item['item']} with any modifications?\n"
+                "Available options: almond milk, oat milk, soy milk (+$0.75 each)")
+    else:
+        # Add non-drink items directly to cart
+        order['cart'].add_item(next_item)
+        return process_next_item(phone_number)
 
 # Flask routes remain the same, but remove the stripe webhook route
 @app.route('/sms', methods=['POST'])

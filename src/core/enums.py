@@ -1,8 +1,9 @@
 from enum import Enum
 
 class OrderStage(Enum):
-    INITIAL = "initial"
-    DRINK_SELECTION = "drink_selection"
+    MENU = "menu"
     MODIFICATIONS = "modifications"
-    CONFIRMATION = "confirmation"
     CHECKOUT = "checkout"
+    PAYMENT = "payment"
+    AWAITING_CARD = "awaiting_card"
+    COMPLETED = "completed"
