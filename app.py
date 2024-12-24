@@ -214,27 +214,31 @@ def process_message(phone_number, message):
     
     # Handle START command
     if message == 'start':
-        # Initialize new order
         active_orders[phone_number] = {
             'state': OrderStage.MENU,
             'cart': ShoppingCart(),
             'order_queue': OrderQueue()
         }
         session_manager.update_session_state(phone_number, OrderStage.MENU)
-        return get_menu_message()  # Return the menu message
+        return get_menu_message()
     
-    # Initialize or get session state
+    # Check if user has an active order
+    if phone_number not in active_orders:
+        return "Please text 'START' to begin ordering."
+    
+    # Get current state
     current_state = session_manager.get_session_state(phone_number)
     
-    # Initialize new order if needed
-    if phone_number not in active_orders:
-        active_orders[phone_number] = {
-            'state': OrderStage.MENU,
-            'cart': ShoppingCart(),
-            'order_queue': OrderQueue()
-        }
-        session_manager.update_session_state(phone_number, OrderStage.MENU)
-
+    # Handle menu state
+    if current_state == OrderStage.MENU:
+        # Extract menu items from message
+        found_items = extract_menu_items(message)
+        if found_items:
+            active_orders[phone_number]['order_queue'].add_items(found_items)
+            return process_next_item(phone_number)
+        else:
+            return "I didn't recognize those items. Please order by item name or number, or text 'MENU' to see options."
+    
     # Handle checkout command
     if message.lower() in ['done', 'checkout', 'pay']:
         if phone_number in active_orders:
