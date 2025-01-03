@@ -22,6 +22,7 @@ from src.core.enums import OrderStage
 from src.core.session import SessionManager
 from src.core.config import MENU, MODIFIERS
 from src.core.cart import ShoppingCart, CartItem
+from src.core.menu_handler import MenuHandler
 
 # Configuration Constants
 PORT = int(os.getenv('PORT', 10000))
