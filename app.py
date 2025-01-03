@@ -60,6 +60,7 @@ dialogue_manager = DialogueManager(menu=MENU, modifiers=MODIFIERS)
 payment_handler = PaymentHandler()
 order_processor = OrderProcessor()
 session_manager = SessionManager()
+menu_handler = MenuHandler(menu=MENU, modifiers=MODIFIERS)
 
 # In-memory storage
 active_orders = {}
@@ -72,54 +73,6 @@ def get_menu_message():
         message += f"{key}. {item['item']} (${item['price']:.2f})\n"
         message += f"   {item['description']}\n"
     return message
-
-def extract_menu_items_and_modifiers(message):
-    """Extract menu items and their modifiers from a message"""
-    found_items = []
-    message = message.lower()
-    
-    # First look for iced/cold drinks
-    is_iced = 'iced' in message or 'cold' in message
-    
-    # Define modifier variations
-    milk_modifiers = {
-        'almond milk': ['almond milk', 'almond'],
-        'oat milk': ['oat milk', 'oat'],
-        'soy milk': ['soy milk', 'soy']
-    }
-    
-    for menu_id, item in MENU.items():
-        item_name = item['item'].lower()
-        
-        # Handle iced drinks specially
-        if is_iced and 'latte' in item_name:
-            for menu_item in MENU.values():
-                if menu_item['item'].lower() == 'iced latte':
-                    item = menu_item
-                    item_name = 'iced latte'
-                    break
-        
-        if item_name in message:
-            # Create a copy of the item
-            item_copy = item.copy()
-            item_copy['modifiers'] = []
-            
-            # Check for modifiers
-            for mod_name, variations in milk_modifiers.items():
-                if any(var in message for var in variations):
-                    item_copy['modifiers'].append(mod_name)
-            
-            found_items.append(item_copy)
-            
-    return found_items
-
-def confirm_modifications(message):
-    """Check if message confirms modifications"""
-    confirmations = ['yes', 'yeah', 'yep', 'sure', 'ok', 'okay', 'y', 'alright', 'confirm']
-    denials = ['no', 'nope', 'n', 'regular', 'normal', 'none']
-    
-    message = message.lower().strip()
-    return (message in confirmations, message in denials)
 
 def process_message(phone_number, message):
     """Process incoming messages based on current order state"""
@@ -145,86 +98,73 @@ def process_message(phone_number, message):
     
     # Handle AWAITING_MOD_CONFIRM state
     if current_state == 'AWAITING_MOD_CONFIRM':
-        # Define modifier mappings
-        milk_modifiers = {
-            'almond': 'almond milk',
-            'almond milk': 'almond milk',
-            'oat': 'oat milk',
-            'oat milk': 'oat milk',
-            'soy': 'soy milk',
-            'soy milk': 'soy milk'
-        }
+        pending_item = order['pending_item']
+        message = message.lower().strip()
         
-        # Check for direct modifier selection
-        selected_modifier = None
-        for key, value in milk_modifiers.items():
-            if key in message:
-                selected_modifier = value
-                order['pending_modifier'] = value
-                break
-        
-        if selected_modifier:
-            return f"{selected_modifier} costs $0.75 extra. Reply YES to confirm or NO for regular milk."
-        
-        # Check for confirmation/denial
-        is_confirmed, is_denied = confirm_modifications(message)
-        
-        if is_confirmed:
-            modifier = order.get('pending_modifier', 'almond milk')
-            order['cart'].add_item(order['pending_item'], modifiers=[modifier])
+        # Handle direct modifier responses
+        if any(mod in message for mod in ['almond', 'almond milk']):
+            order['pending_modifier'] = 'almond milk'
+            return ("Almond milk costs $0.75 extra. Reply:\n"
+                   "YES to confirm\n"
+                   "NO for regular milk")
+        elif any(mod in message for mod in ['oat', 'oat milk']):
+            order['pending_modifier'] = 'oat milk'
+            return ("Oat milk costs $0.75 extra. Reply:\n"
+                   "YES to confirm\n"
+                   "NO for regular milk")
+        elif any(mod in message for mod in ['soy', 'soy milk']):
+            order['pending_modifier'] = 'soy milk'
+            return ("Soy milk costs $0.75 extra. Reply:\n"
+                   "YES to confirm\n"
+                   "NO for regular milk")
+        elif message in ['yes', 'y', 'yeah', 'sure', 'ok', 'yep']:
+            if 'pending_modifier' in order:
+                order['cart'].add_item(pending_item, modifiers=[order['pending_modifier']])
+            order['state'] = OrderStage.MENU
+            session_manager.update_session_state(phone_number, OrderStage.MENU)
+            return order['cart'].get_summary()
+        elif message in ['no', 'n', 'nope', 'regular', 'regular milk', 'normal']:
+            order['cart'].add_item(pending_item)  # Add without modifications
             order['state'] = OrderStage.MENU
             session_manager.update_session_state(phone_number, OrderStage.MENU)
             return order['cart'].get_summary()
         
-        if is_denied:
-            order['cart'].add_item(order['pending_item'])  # Add without modifications
-            order['state'] = OrderStage.MENU
-            session_manager.update_session_state(phone_number, OrderStage.MENU)
-            return order['cart'].get_summary()
-        
-        return ("I didn't understand that. Please choose from:\n"
+        return ("Please choose a milk type or reply NO for regular milk:\n"
                 "- Almond milk (+$0.75)\n"
                 "- Oat milk (+$0.75)\n"
-                "- Soy milk (+$0.75)\n"
-                "Or reply 'no' for regular milk")
+                "- Soy milk (+$0.75)")
     
     # Handle menu state
     if current_state == OrderStage.MENU:
         # Check for special commands
         if message in ['done', 'checkout', 'pay']:
             return handle_checkout(phone_number)
-        
-        # Extract menu items and modifiers
-        found_items = extract_menu_items_and_modifiers(message)
-        if found_items:
-            total_response = []
-            for item in found_items:
-                if item['modifiers']:
-                    # If modifiers were specified, ask for confirmation
-                    order['pending_item'] = item
-                    order['pending_modifier'] = item['modifiers'][0]
-                    order['state'] = 'AWAITING_MOD_CONFIRM'
-                    total_response.append(
-                        f"{item['modifiers'][0]} costs $0.75 extra. Reply YES to confirm or NO for regular milk."
-                    )
-                elif item['category'] in ['hot', 'cold']:
-                    # For drinks without specified modifiers
-                    order['pending_item'] = item
-                    order['state'] = 'AWAITING_MOD_CONFIRM'
-                    total_response.append(
-                        "Would you like any milk modifications?\n"
-                        "- Almond milk (+$0.75)\n"
-                        "- Oat milk (+$0.75)\n"
-                        "- Soy milk (+$0.75)\n"
-                        "Reply 'no' for regular milk"
-                    )
-                else:
-                    # Add non-drink items directly
-                    order['cart'].add_item(item)
-                    if not total_response:  # Only add summary if no other messages
-                        total_response.append(order['cart'].get_summary())
             
-            return "\n\n".join(total_response)
+        # Extract menu items and potential modifiers
+        found_items = menu_handler.extract_menu_items_and_modifiers(message)
+        if found_items:
+            for item in found_items:
+                if item.get('modifiers'):
+                    # If modifiers were specified in the order
+                    mod = item['modifiers'][0]
+                    order['pending_item'] = item
+                    order['pending_modifier'] = mod
+                    order['state'] = 'AWAITING_MOD_CONFIRM'
+                    return f"{mod} costs $0.75 extra. Reply YES to confirm or NO for regular milk."
+                elif item['category'] in ['hot', 'cold']:
+                    # If it's a drink that could have modifiers
+                    order['pending_item'] = item
+                    order['state'] = 'AWAITING_MOD_CONFIRM'
+                    return ("Would you like any milk modifications?\n"
+                           "- Almond milk (+$0.75)\n"
+                           "- Oat milk (+$0.75)\n"
+                           "- Soy milk (+$0.75)\n"
+                           "Reply 'no' for regular milk")
+                else:
+                    # Non-drink items go straight to cart
+                    order['cart'].add_item(item)
+            
+            return order['cart'].get_summary()
             
         return "I didn't recognize those items. Please order by item name or number, or text 'MENU' to see options."
     
