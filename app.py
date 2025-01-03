@@ -79,56 +79,52 @@ def process_message(phone_number, message):
     message = message.lower().strip()
     logger.info(f"Processing message: {message} from {phone_number}")
     
+    # Handle MENU command in any state
+    if message == 'menu':
+        return get_menu_message()
+        
     # Handle START command
     if message == 'start':
+        session = session_manager.create_session(phone_number)
         active_orders[phone_number] = {
             'state': OrderStage.MENU,
             'cart': ShoppingCart(),
             'order_queue': OrderQueue()
         }
-        session_manager.update_session_state(phone_number, OrderStage.MENU)
         return get_menu_message()
-    
+        
     # Check if user has an active order
     if phone_number not in active_orders:
         return "Please text 'START' to begin ordering."
-    
-    current_state = session_manager.get_session_state(phone_number)
+        
     order = active_orders[phone_number]
+    current_state = session_manager.get_session_state(phone_number)
+    logger.info(f"Current state for {phone_number}: {current_state}")
     
     # Handle AWAITING_MOD_CONFIRM state
-    if current_state == 'AWAITING_MOD_CONFIRM':
-        pending_item = order['pending_item']
-        message = message.lower().strip()
-        
-        # Handle direct modifier responses
-        if any(mod in message for mod in ['almond', 'almond milk']):
-            order['pending_modifier'] = 'almond milk'
-            return ("Almond milk costs $0.75 extra. Reply:\n"
-                   "YES to confirm\n"
-                   "NO for regular milk")
-        elif any(mod in message for mod in ['oat', 'oat milk']):
-            order['pending_modifier'] = 'oat milk'
-            return ("Oat milk costs $0.75 extra. Reply:\n"
-                   "YES to confirm\n"
-                   "NO for regular milk")
-        elif any(mod in message for mod in ['soy', 'soy milk']):
-            order['pending_modifier'] = 'soy milk'
-            return ("Soy milk costs $0.75 extra. Reply:\n"
-                   "YES to confirm\n"
-                   "NO for regular milk")
-        elif message in ['yes', 'y', 'yeah', 'sure', 'ok', 'yep']:
-            if 'pending_modifier' in order:
-                order['cart'].add_item(pending_item, modifiers=[order['pending_modifier']])
+    if current_state == OrderStage.AWAITING_MOD_CONFIRM:
+        has_modifier, modifier = menu_handler.check_for_modification(message)
+        if has_modifier:
+            order['pending_modifier'] = modifier
+            return f"{modifier} costs $0.75 extra. Reply YES to confirm or NO for regular milk."
+            
+        if menu_handler.is_confirmation(message):
+            # Add item with pending modifier
+            if 'pending_modifier' in order and 'pending_item' in order:
+                order['cart'].add_item(order['pending_item'], modifiers=[order['pending_modifier']])
+            else:
+                order['cart'].add_item(order['pending_item'])
             order['state'] = OrderStage.MENU
             session_manager.update_session_state(phone_number, OrderStage.MENU)
             return order['cart'].get_summary()
-        elif message in ['no', 'n', 'nope', 'regular', 'regular milk', 'normal']:
-            order['cart'].add_item(pending_item)  # Add without modifications
+            
+        if menu_handler.is_denial(message):
+            # Add item without modifications
+            order['cart'].add_item(order['pending_item'])
             order['state'] = OrderStage.MENU
             session_manager.update_session_state(phone_number, OrderStage.MENU)
             return order['cart'].get_summary()
-        
+            
         return ("Please choose a milk type or reply NO for regular milk:\n"
                 "- Almond milk (+$0.75)\n"
                 "- Oat milk (+$0.75)\n"
@@ -136,25 +132,27 @@ def process_message(phone_number, message):
     
     # Handle menu state
     if current_state == OrderStage.MENU:
-        # Check for special commands
+        # Check for checkout commands
         if message in ['done', 'checkout', 'pay']:
             return handle_checkout(phone_number)
             
-        # Extract menu items and potential modifiers
+        # Extract menu items and modifiers
         found_items = menu_handler.extract_menu_items_and_modifiers(message)
         if found_items:
+            total_response = []
             for item in found_items:
                 if item.get('modifiers'):
                     # If modifiers were specified in the order
                     mod = item['modifiers'][0]
                     order['pending_item'] = item
-                    order['pending_modifier'] = mod
-                    order['state'] = 'AWAITING_MOD_CONFIRM'
+                    order['state'] = OrderStage.AWAITING_MOD_CONFIRM
+                    session_manager.update_session_state(phone_number, OrderStage.AWAITING_MOD_CONFIRM)
                     return f"{mod} costs $0.75 extra. Reply YES to confirm or NO for regular milk."
                 elif item['category'] in ['hot', 'cold']:
                     # If it's a drink that could have modifiers
                     order['pending_item'] = item
-                    order['state'] = 'AWAITING_MOD_CONFIRM'
+                    order['state'] = OrderStage.AWAITING_MOD_CONFIRM
+                    session_manager.update_session_state(phone_number, OrderStage.AWAITING_MOD_CONFIRM)
                     return ("Would you like any milk modifications?\n"
                            "- Almond milk (+$0.75)\n"
                            "- Oat milk (+$0.75)\n"
@@ -165,10 +163,10 @@ def process_message(phone_number, message):
                     order['cart'].add_item(item)
             
             return order['cart'].get_summary()
-            
+        
         return "I didn't recognize those items. Please order by item name or number, or text 'MENU' to see options."
     
-    # Handle other states (payment, etc.)
+    # Handle payment and other states
     return handle_other_states(phone_number, message, current_state)
 
 def handle_checkout(phone_number):
@@ -177,8 +175,8 @@ def handle_checkout(phone_number):
     if not cart.items:
         return "Your cart is empty! Please add items before checking out."
     
-    session_manager.update_session_state(phone_number, OrderStage.PAYMENT)
     active_orders[phone_number]['state'] = OrderStage.PAYMENT
+    session_manager.update_session_state(phone_number, OrderStage.PAYMENT)
     
     return (
         f"Total: ${cart.get_total():.2f}\n"
