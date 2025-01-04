@@ -4,6 +4,7 @@ import logging
 import os
 import uuid
 import sys
+from decimal import Decimal
 
 # Third-party imports
 from decouple import config
@@ -23,6 +24,8 @@ from src.core.session import SessionManager
 from src.core.config import MENU, MODIFIERS
 from src.core.cart import ShoppingCart, CartItem
 from src.core.menu_handler import MenuHandler
+from src.core.state import CustomerContext, OrderContext
+from src.core.conversation_handler import ConversationHandler
 
 # Configuration Constants
 PORT = int(os.getenv('PORT', 10000))
@@ -61,10 +64,12 @@ payment_handler = PaymentHandler()
 order_processor = OrderProcessor()
 session_manager = SessionManager()
 menu_handler = MenuHandler(menu=MENU, modifiers=MODIFIERS)
+conversation_handler = ConversationHandler(openai_client)
 
 # In-memory storage
 active_orders = {}
 completed_orders = {}
+customer_contexts = {}
 
 def get_menu_message():
     """Generate the menu message"""
@@ -78,6 +83,16 @@ def process_message(phone_number, message):
     """Process incoming messages based on current order state"""
     message = message.lower().strip()
     logger.info(f"Processing message: {message} from {phone_number}")
+
+    # Get or create customer context
+    if phone_number not in customer_contexts:
+        customer_contexts[phone_number] = CustomerContext()
+    customer_context = customer_contexts[phone_number]
+
+    # Try handling casual conversation first
+    casual_response = conversation_handler.handle_chat(message)
+    if casual_response and message not in ['menu', 'start']:
+        return casual_response
     
     # Handle MENU command in any state
     if message == 'menu':
@@ -85,20 +100,29 @@ def process_message(phone_number, message):
         
     # Handle START command
     if message == 'start':
-        session = session_manager.create_session(phone_number)
         active_orders[phone_number] = {
             'state': OrderStage.MENU,
             'cart': ShoppingCart(),
             'order_queue': OrderQueue()
         }
+        # Add personalized welcome for returning customers
+        if customer_context.visit_count > 0:
+            return conversation_handler.get_friendly_response(
+                get_menu_message(),
+                customer_context,
+                is_returning=True
+            )
         return get_menu_message()
         
     # Check if user has an active order
     if phone_number not in active_orders:
-        return "Please text 'START' to begin ordering."
+        return conversation_handler.get_friendly_response(
+            "Please text 'START' to begin ordering.",
+            customer_context
+        )
         
     order = active_orders[phone_number]
-    current_state = session_manager.get_session_state(phone_number)
+    current_state = order['state']
     logger.info(f"Current state for {phone_number}: {current_state}")
     
     # Handle AWAITING_MOD_CONFIRM state
@@ -106,29 +130,36 @@ def process_message(phone_number, message):
         has_modifier, modifier = menu_handler.check_for_modification(message)
         if has_modifier:
             order['pending_modifier'] = modifier
-            return f"{modifier} costs $0.75 extra. Reply YES to confirm or NO for regular milk."
+            return conversation_handler.get_friendly_response(
+                f"{modifier} costs $0.75 extra. Reply YES to confirm or NO for regular milk.",
+                customer_context
+            )
             
         if menu_handler.is_confirmation(message):
-            # Add item with pending modifier
-            if 'pending_modifier' in order and 'pending_item' in order:
+            if 'pending_modifier' in order:
                 order['cart'].add_item(order['pending_item'], modifiers=[order['pending_modifier']])
+                customer_context.usual_modifications.append(order['pending_modifier'])
             else:
                 order['cart'].add_item(order['pending_item'])
             order['state'] = OrderStage.MENU
-            session_manager.update_session_state(phone_number, OrderStage.MENU)
-            return order['cart'].get_summary()
+            return conversation_handler.get_friendly_response(
+                order['cart'].get_summary(),
+                customer_context,
+                item_added=True
+            )
             
         if menu_handler.is_denial(message):
-            # Add item without modifications
             order['cart'].add_item(order['pending_item'])
             order['state'] = OrderStage.MENU
-            session_manager.update_session_state(phone_number, OrderStage.MENU)
             return order['cart'].get_summary()
             
-        return ("Please choose a milk type or reply NO for regular milk:\n"
-                "- Almond milk (+$0.75)\n"
-                "- Oat milk (+$0.75)\n"
-                "- Soy milk (+$0.75)")
+        return conversation_handler.get_friendly_response(
+            "Please choose a milk type or reply NO for regular milk:\n"
+            "- Almond milk (+$0.75)\n"
+            "- Oat milk (+$0.75)\n"
+            "- Soy milk (+$0.75)",
+            customer_context
+        )
     
     # Handle menu state
     if current_state == OrderStage.MENU:
@@ -139,69 +170,100 @@ def process_message(phone_number, message):
         # Extract menu items and modifiers
         found_items = menu_handler.extract_menu_items_and_modifiers(message)
         if found_items:
-            total_response = []
             for item in found_items:
                 if item.get('modifiers'):
                     # If modifiers were specified in the order
                     mod = item['modifiers'][0]
                     order['pending_item'] = item
+                    order['pending_modifier'] = mod
                     order['state'] = OrderStage.AWAITING_MOD_CONFIRM
-                    session_manager.update_session_state(phone_number, OrderStage.AWAITING_MOD_CONFIRM)
-                    return f"{mod} costs $0.75 extra. Reply YES to confirm or NO for regular milk."
+                    return conversation_handler.get_friendly_response(
+                        f"{mod} costs $0.75 extra. Reply YES to confirm or NO for regular milk.",
+                        customer_context
+                    )
                 elif item['category'] in ['hot', 'cold']:
                     # If it's a drink that could have modifiers
                     order['pending_item'] = item
                     order['state'] = OrderStage.AWAITING_MOD_CONFIRM
-                    session_manager.update_session_state(phone_number, OrderStage.AWAITING_MOD_CONFIRM)
-                    return ("Would you like any milk modifications?\n"
-                           "- Almond milk (+$0.75)\n"
-                           "- Oat milk (+$0.75)\n"
-                           "- Soy milk (+$0.75)\n"
-                           "Reply 'no' for regular milk")
+                    # Check if customer has usual modification
+                    if customer_context.usual_modifications:
+                        usual_mod = customer_context.usual_modifications[-1]
+                        return conversation_handler.get_friendly_response(
+                            f"Would you like your usual {usual_mod}? Reply YES or choose another:\n"
+                            "- Almond milk (+$0.75)\n"
+                            "- Oat milk (+$0.75)\n"
+                            "- Soy milk (+$0.75)\n"
+                            "Or reply 'no' for regular milk",
+                            customer_context
+                        )
+                    return conversation_handler.get_friendly_response(
+                        "Would you like any milk modifications?\n"
+                        "- Almond milk (+$0.75)\n"
+                        "- Oat milk (+$0.75)\n"
+                        "- Soy milk (+$0.75)\n"
+                        "Reply 'no' for regular milk",
+                        customer_context
+                    )
                 else:
                     # Non-drink items go straight to cart
                     order['cart'].add_item(item)
             
-            return order['cart'].get_summary()
+            return conversation_handler.get_friendly_response(
+                order['cart'].get_summary(),
+                customer_context,
+                items_added=True
+            )
         
-        return "I didn't recognize those items. Please order by item name or number, or text 'MENU' to see options."
+        return conversation_handler.get_friendly_response(
+            "I didn't recognize those items. Would you like to see our menu?",
+            customer_context,
+            menu_prompt=True
+        )
     
-    # Handle payment and other states
-    return handle_other_states(phone_number, message, current_state)
+    # Handle payment state
+    if current_state == OrderStage.PAYMENT:
+        if message.lower() in ['cash', 'card']:
+            response = payment_handler.handle_payment(phone_number, message, active_orders, completed_orders)
+            return conversation_handler.get_friendly_response(response, customer_context, payment=True)
+        return conversation_handler.get_friendly_response(
+            "Please choose your payment method:\n"
+            "- Reply CASH for cash payment\n"
+            "- Reply CARD for credit card",
+            customer_context
+        )
+    
+    # Handle card payment state
+    if current_state == OrderStage.AWAITING_CARD:
+        response = payment_handler.handle_card_payment(phone_number, message, active_orders, completed_orders)
+        return conversation_handler.get_friendly_response(response, customer_context, payment=True)
+    
+    return conversation_handler.get_friendly_response(
+        "I'm not sure what to do. Would you like to start a new order?",
+        customer_context,
+        confused=True
+    )
 
 def handle_checkout(phone_number):
     """Handle checkout process"""
     cart = active_orders[phone_number]['cart']
-    if not cart.items:
-        return "Your cart is empty! Please add items before checking out."
+    if cart.is_empty():
+        return conversation_handler.get_friendly_response(
+            "Your cart is empty! Would you like to see our menu?",
+            customer_contexts.get(phone_number, CustomerContext()),
+            empty_cart=True
+        )
     
     active_orders[phone_number]['state'] = OrderStage.PAYMENT
-    session_manager.update_session_state(phone_number, OrderStage.PAYMENT)
     
-    return (
+    return conversation_handler.get_friendly_response(
         f"Total: ${cart.get_total():.2f}\n"
         "How would you like to pay?\n"
         "Reply with:\n"
         "- CASH for cash payment\n"
-        "- CARD to pay by credit card"
+        "- CARD to pay by credit card",
+        customer_contexts.get(phone_number, CustomerContext()),
+        checkout=True
     )
-
-def handle_other_states(phone_number, message, current_state):
-    """Handle payment and other states"""
-    if current_state == OrderStage.PAYMENT:
-        return handle_payment(phone_number, message)
-    elif current_state == OrderStage.AWAITING_CARD:
-        return handle_card_payment(phone_number, message)
-    
-    return "I'm not sure what to do. Please text 'START' to begin a new order."
-
-def handle_payment(phone_number, message):
-    """Handle payment processing"""
-    return payment_handler.handle_payment(phone_number, message, active_orders, completed_orders)
-
-def handle_card_payment(phone_number, message):
-    """Handle credit card payment processing"""
-    return payment_handler.handle_card_payment(phone_number, message, active_orders, completed_orders)
 
 @app.route('/sms', methods=['POST'])
 def handle_sms():
