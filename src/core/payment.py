@@ -1,8 +1,5 @@
-import re
+import uuid
 from datetime import datetime
-import logging
-
-logger = logging.getLogger(__name__)
 
 class PaymentHandler:
     def __init__(self):
@@ -12,15 +9,90 @@ class PaymentHandler:
             'cash': self._handle_cash
         }
 
-    def process_payment(self, order, payment_method):
-        payment_method = payment_method.lower()
-        for key, handler in self.payment_methods.items():
-            if key in payment_method:
-                return handler(order)
-        return {
-            'success': False,
-            'message': "Would you like to pay with credit card or cash?"
-        }
+    def handle_payment(self, phone_number, message, active_orders, completed_orders):
+        """Handle payment method selection"""
+        message = message.lower()
+        
+        if message == 'cash':
+            cart = active_orders[phone_number]['cart']
+            order_id = str(uuid.uuid4())[:8]
+            
+            # Move to completed orders
+            if phone_number not in completed_orders:
+                completed_orders[phone_number] = []
+            
+            completed_orders[phone_number].append({
+                'cart': cart,
+                'order_id': order_id,
+                'timestamp': datetime.now()
+            })
+            
+            del active_orders[phone_number]
+            
+            return (
+                f"Perfect! Please pay ${cart.get_total():.2f} when you pick up your order.\n"
+                f"Your order number is #{order_id}\n"
+                "Your order will be ready in about 15 minutes."
+            )
+        
+        elif message == 'card':
+            active_orders[phone_number]['state'] = 'AWAITING_CARD'
+            return (
+                "Please provide your card details in the format:\n"
+                "CARD [16-digit number] [MM/YY] [CVV]\n"
+                "Example: CARD 1234567890123456 12/25 123"
+            )
+        
+        # Default case if neither cash nor card
+        return (
+            "Please choose a payment method:\n"
+            "- Reply CASH for cash payment\n"
+            "- Reply CARD for credit card"
+        )
+
+    def handle_card_payment(self, phone_number, message, active_orders, completed_orders):
+        """Handle credit card payment processing"""
+        if not message.upper().startswith('CARD '):
+            return (
+                "Please provide your card details in the format:\n"
+                "CARD [16-digit number] [MM/YY] [CVV]\n"
+                "Example: CARD 1234567890123456 12/25 123\n"
+                "Or type BACK to choose a different payment method"
+            )
+        
+        # Parse card details
+        parts = message.split()
+        if len(parts) != 4:
+            return "Invalid format. Please use: CARD [number] [MM/YY] [CVV]"
+        
+        _, card_number, exp_date, cvv = parts
+        
+        # Validate card details
+        is_valid, error_message = self.validate_card_details(card_number, exp_date, cvv)
+        if not is_valid:
+            return error_message
+        
+        # Process payment (in real app, would integrate with payment processor)
+        cart = active_orders[phone_number]['cart']
+        order_id = str(uuid.uuid4())[:8]
+        
+        # Move to completed orders
+        if phone_number not in completed_orders:
+            completed_orders[phone_number] = []
+        
+        completed_orders[phone_number].append({
+            'cart': cart,
+            'order_id': order_id,
+            'timestamp': datetime.now()
+        })
+        
+        del active_orders[phone_number]
+        
+        return (
+            f"Payment successful! Your total was ${cart.get_total():.2f}\n"
+            f"Your order number is #{order_id}\n"
+            "Your order will be ready in about 15 minutes."
+        )
 
     def _handle_credit_card(self, order):
         return {
@@ -55,7 +127,6 @@ class PaymentHandler:
                 return False, "Invalid expiration date. Please use MM/YY format with a future date."
             
             return True, "Card validated successfully"
-            
         except Exception as e:
-            logger.error(f"Card validation error: {str(e)}")
             return False, "Invalid card format. Please use: CARD [number] [MM/YY] [CVV]"
+        
