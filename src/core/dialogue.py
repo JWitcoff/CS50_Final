@@ -4,6 +4,7 @@ import logging
 import re
 from datetime import datetime
 from typing import Dict, List, Tuple, Optional
+from decimal import Decimal
 
 logger = logging.getLogger(__name__)
 
@@ -18,9 +19,13 @@ class DialogueManager:
             logger.error(f"Error initializing DialogueManager: {e}")
             raise
 
-    def process_message(self, message: str, phone_number: str, context: Dict) -> Tuple[str, Dict]:
+    def process_message(self, message: str, phone_number: str, context: Dict, cart: Optional[Dict] = None) -> Tuple[str, Dict]:
         """Process message and maintain conversation context"""
         try:
+            # Update context with cart information
+            if cart:
+                context['cart'] = cart
+
             # First check for casual conversation
             casual_response = self._handle_casual_chat(message)
             if casual_response:
@@ -59,7 +64,29 @@ class DialogueManager:
             modifier_text = self._format_modifier_text()
             current_time = datetime.now().strftime("%H:%M")
             
+            # Format cart information
+            cart_info = context.get('cart', {})
+            cart_items = []
+            if cart_info and 'items' in cart_info:
+                for item in cart_info['items']:
+                    mod_text = f" with {', '.join(item['modifiers'])}" if item.get('modifiers') else ""
+                    cart_items.append(f"- {item.get('quantity', 1)}x {item['name']}{mod_text}")
+            
+            cart_display = "\n".join(cart_items) if cart_items else "Empty"
+            cart_total = Decimal(str(cart_info.get('total', '0')))
+            
+            # Check if we're in modifier confirmation
+            pending_item = context.get('pending_item', {})
+            if pending_item:
+                pending_mod = pending_item.get('modifiers', [])[0] if pending_item.get('modifiers') else None
+                modifier_cost = Decimal('0.75')
+                potential_total = cart_total + pending_item.get('price', Decimal('0')) + modifier_cost
+            
             system_message = f"""You are a friendly, helpful barista at a coffee shop. Current time: {current_time}
+
+            Current Cart:
+            {cart_display}
+            Current Total: ${cart_total:.2f}
 
             Menu:
             {self.format_menu_for_ai(menu)}
@@ -74,13 +101,15 @@ class DialogueManager:
             1. Be warm and friendly but concise (2-3 sentences max)
             2. Use 1-2 emojis maximum
             3. Always confirm prices and modifications clearly
-            4. If customer orders a drink, subtly suggest complementary items
-            5. Reference past orders if available
-            6. Keep important information clear while being conversational
+            4. Always acknowledge ALL items currently in cart when responding
+            5. Show running total including any modifiers
+            6. If asking about modifiers, mention current cart contents and potential total
 
-            Example good responses:
-            "One almond milk latte coming up! That'll be $5.25 with the almond milk (+$0.75). Would you like anything else? Our blueberry muffins are fresh out of the oven! 🥮"
-            "Welcome back! Another iced cappuccino with oat milk? That's $5.25 total ☕"
+            Example good responses for modifier confirmation:
+            "I see you have a muffin ($3.00) in your cart. For the almond milk latte, there's a $0.75 charge for almond milk. Would you like to add it? Your total would be $8.25. ☕"
+            
+            Example good responses for regular orders:
+            "Added 1 espresso ($3.50) to your cart. Your total is $3.50. Would you like to add any milk modifications? ☕"
             """
 
             response = self.client.chat.completions.create(
