@@ -109,7 +109,7 @@ class DialogueManager:
             "I see you have a muffin ($3.00) in your cart. For the almond milk latte, there's a $0.75 charge for almond milk. Would you like to add it? Your total would be $8.25. ☕"
             
             Example good responses for regular orders:
-            "Added 1 espresso ($3.50) to your cart. Your total is $3.50. Would you like to add any milk modifications? ☕"
+            "Added 1 latte ($3.50) to your cart. Your total is $3.50. Would you like to add any milk modifications? ☕"
             """
 
             response = self.client.chat.completions.create(

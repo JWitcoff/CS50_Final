@@ -1,6 +1,7 @@
 from enum import Enum
 from dataclasses import dataclass
 from typing import List, Dict
+from decimal import Decimal
 
 class TestCategory(Enum):
     BASIC = "Basic Order Flows"
@@ -26,16 +27,94 @@ class TestScenarios:
             TestCase(
                 id="BASIC-1",
                 category=TestCategory.BASIC,
-                description="Simple espresso order",
+                description="Simple latte order",
                 messages=[
                     "start",
-                    "1",  # Order espresso
+                    "1",  # Order latte
+                    "no",  # No modifications
                     "done",
-                    "4242-4242-4242-4242",
-                    "confirm"
+                    "cash"
                 ],
-                expected_states=["INITIAL", "ORDERING", "PAYMENT", "PAYMENT", "COMPLETED"],
-                expected_cart={"items": ["Espresso"], "total": 3.50}
+                expected_states=["INITIAL", "ORDERING", "MENU", "PAYMENT", "COMPLETED"],
+                expected_cart={
+                    "items": [{"name": "latte", "quantity": 1, "price": 3.50}],
+                    "total": Decimal('3.50')
+                }
             ),
-            # Add more test cases here
-        ] 
+            
+            TestCase(
+                id="CART-1",
+                category=TestCategory.CART,
+                description="Multiple items with modifier",
+                messages=[
+                    "start",
+                    "Iced latte with almond milk and a muffin",
+                    "yes",  # Confirm almond milk
+                    "done",
+                    "cash"
+                ],
+                expected_states=[
+                    "INITIAL",
+                    "ORDERING",
+                    "MENU",
+                    "PAYMENT",
+                    "COMPLETED"
+                ],
+                expected_cart={
+                    "items": [
+                        {
+                            "name": "Iced Latte",
+                            "quantity": 1,
+                            "price": 4.50,
+                            "modifiers": ["almond milk"]
+                        },
+                        {
+                            "name": "Muffin",
+                            "quantity": 1,
+                            "price": 3.00
+                        }
+                    ],
+                    "total": Decimal('8.25')  # 4.50 + 0.75 + 3.00
+                }
+            ),
+            
+            TestCase(
+                id="CART-2",
+                category=TestCategory.CART,
+                description="Sequential item addition",
+                messages=[
+                    "start",
+                    "latte",
+                    "no",  # No modifications for latte
+                    "latte with almond milk",
+                    "yes",  # Confirm almond milk
+                    "done",
+                    "cash"
+                ],
+                expected_states=[
+                    "INITIAL",
+                    "ORDERING",
+                    "MENU",
+                    "ORDERING",
+                    "MENU",
+                    "PAYMENT",
+                    "COMPLETED"
+                ],
+                expected_cart={
+                    "items": [
+                        {
+                            "name": "latte",
+                            "quantity": 1,
+                            "price": 3.50
+                        },
+                        {
+                            "name": "Latte",
+                            "quantity": 1,
+                            "price": 4.50,
+                            "modifiers": ["almond milk"]
+                        }
+                    ],
+                    "total": Decimal('8.75')  # 3.50 + 4.50 + 0.75
+                }
+            )
+        ]

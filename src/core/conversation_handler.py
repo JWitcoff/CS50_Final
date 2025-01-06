@@ -12,24 +12,34 @@ class ConversationHandler:
         self.client = openai_client
         self.customer_context = {}
         self.greeting_used = set()
-    
-    def get_friendly_response(self, base_message: str, customer_context: Dict, **kwargs) -> str:
+        
+    def get_friendly_response(self, base_message: str, customer_context: Dict, cart: Optional[Dict] = None, **kwargs) -> str:
         """Make responses more conversational while maintaining necessary info"""
         try:
             time_of_day = self._get_time_greeting()
             
-            prompt = f"""You are a friendly, helpful barista. 
+            # Format cart information if available
+            cart_info = ""
+            if cart:
+                cart_items = cart.get('items', [])
+                if cart_items:
+                    cart_info = "\nCurrent cart:\n"
+                    for item in cart_items:
+                        mods = f" with {', '.join(item.get('modifiers', []))}" if item.get('modifiers') else ""
+                        cart_info += f"- {item.get('quantity', 1)}x {item.get('name')}{mods}\n"
+                    cart_info += f"Total: ${cart.get('total', 0):.2f}"
+            
+            prompt = f"""You are a friendly, helpful barista.
             Make this response conversational while keeping all important information.
             Use max 1-2 emojis. Be concise but warm.
-
             Time of day: {time_of_day}
             Customer context: {customer_context}
+            Cart information: {cart_info}
             Message to convey: {base_message}
             Additional context: {kwargs}
-
             Keep prices and important information clear while being friendly.
             """
-
+            
             response = self.client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
@@ -43,8 +53,8 @@ class ConversationHandler:
         except Exception as e:
             logger.error(f"Error generating friendly response: {e}")
             return base_message
-            
-    def handle_chat(self, message: str, context: Optional[Dict] = None) -> Optional[str]:
+
+    def handle_chat(self, message: str, context: Optional[Dict] = None, cart: Optional[Dict] = None) -> Optional[str]:
         """Handle casual conversation and questions"""
         casual_patterns = {
             'greeting': ['hi', 'hello', 'hey', 'good morning', 'morning', 'afternoon', 'evening'],
@@ -55,12 +65,14 @@ class ConversationHandler:
         }
         
         message = message.lower()
-        
         # Check if message is just casual conversation
         for category, patterns in casual_patterns.items():
             if any(pattern in message for pattern in patterns):
-                return self._get_casual_response(category, context or {})
-                
+                return self.get_friendly_response(
+                    self._get_casual_response(category, context or {}),
+                    context or {},
+                    cart=cart
+                )
         return None
 
     def _get_time_greeting(self) -> str:
@@ -72,7 +84,7 @@ class ConversationHandler:
             return "afternoon"
         else:
             return "evening"
-            
+
     def _get_casual_response(self, category: str, context: Dict) -> str:
         """Get contextually appropriate casual response"""
         responses = {
@@ -97,5 +109,4 @@ class ConversationHandler:
                 "Great coffee weather! What are you in the mood for? ✨"
             ]
         }
-        
         return random.choice(responses[category])
