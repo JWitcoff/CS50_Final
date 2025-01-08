@@ -35,7 +35,7 @@ The Coffee Shop SMS Ordering System transforms the traditional coffee ordering e
 The project is structured into modular components, each handling specific aspects of the ordering system:
 
 #### Cart Management (`src/core/cart.py`)
-Initially, the cart system struggled with handling multiple items when some required modifications. After careful consideration, we implemented a two-phase item processing approach:
+Initially, the cart system struggled with handling multiple items when some required modifications. After careful consideration, I implemented a two-phase item processing approach:
 - Immediately adds non-modifiable items to the cart
 - Queues items requiring modification for sequential processing
 - Maintains cart state throughout the modification flow
@@ -43,7 +43,7 @@ Initially, the cart system struggled with handling multiple items when some requ
 This design choice significantly improved the user experience by ensuring no items are lost during the ordering process.
 
 #### Conversation Handling (`src/core/conversation_handler.py` and `dialogue.py`)
-We chose to separate conversation handling into two components:
+I chose to separate conversation handling into two components:
 - `conversation_handler.py`: Manages immediate message processing
 - `dialogue.py`: Handles higher-level conversation flow
 
