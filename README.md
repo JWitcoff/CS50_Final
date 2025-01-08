@@ -25,6 +25,8 @@ The Coffee Shop SMS Ordering System transforms the traditional coffee ordering e
   - Continuous deployment from GitHub
   - Automatic HTTPS/SSL
   - Application logging and monitoring
+- **IDE**: Cursor AI
+- **Feedbacking**: Claude 3.5 Sonnet
 
 ## Design Choices and Implementation Details
 
