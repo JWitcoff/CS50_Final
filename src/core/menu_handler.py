@@ -30,16 +30,23 @@ class MenuHandler:
         for menu_id, item in self.menu.items():
             # Check numeric reference
             if str(menu_id) in message:
-                item_copy = self._process_item(item, is_iced, milk_modifiers, message)
-                if item_copy:
-                    found_items.append(item_copy)
+                # Create a copy and ensure we keep the original item name
+                item_copy = item.copy()
+                item_copy['item'] = self.menu[menu_id]['item']  # Use exact name from menu
+                processed_item = self._process_item(item_copy, is_iced, milk_modifiers, message)
+                if processed_item:
+                    found_items.append(processed_item)
+                continue
             
-            # Check item name
-            item_name = item['item'].lower()
-            if self._check_item_match(item_name, words, is_iced):
-                item_copy = self._process_item(item, is_iced, milk_modifiers, message)
-                if item_copy:
-                    found_items.append(item_copy)
+            # Check item name - use original case for comparison
+            original_name = item['item']
+            if self._check_item_match(original_name.lower(), words, is_iced):
+                # Use original item name
+                item_copy = item.copy()
+                item_copy['item'] = original_name
+                processed_item = self._process_item(item_copy, is_iced, milk_modifiers, message)
+                if processed_item:
+                    found_items.append(processed_item)
         
         logger.info(f"Extracted items: {found_items}")
         return found_items
@@ -65,11 +72,13 @@ class MenuHandler:
         item_copy = item.copy()
         item_copy['modifiers'] = []
         
-        # Handle iced latte special case
+        # Handle iced latte special case while preserving original case
         if is_iced and 'latte' in item['item'].lower() and 'iced' not in item['item'].lower():
             for menu_item in self.menu.values():
                 if menu_item['item'].lower() == 'iced latte':
-                    item_copy = menu_item.copy()
+                    temp = menu_item.copy()
+                    temp['item'] = menu_item['item']  # Preserve original case
+                    item_copy = temp
                     break
         
         # Check for modifiers
@@ -108,3 +117,4 @@ class MenuHandler:
         denials = ['no', 'nope', 'n', 'regular', 'normal', 'none', 'cancel', 'nah']
         message = message.lower().strip('!., ')
         return message in denials
+    
