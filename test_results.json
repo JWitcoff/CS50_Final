@@ -8,7 +8,7 @@
       {
         "step": 1,
         "input": "start",
-        "response": "Welcome to Coffee S50! Order by number or name:\n\n1. latte ($3.50)\n   Strong, pure coffee shot\n2. Latte ($4.50)\n   latte with steamed milk\n3. Cappuccino ($4.50)\n   Equal parts latte, steamed milk, and foam\n4. Cold Brew ($4.50)\n   12-hour steeped coffee\n5. Iced Latte ($4.50)\n   latte over ice with cold milk\n6. Croissant ($3.50)\n   Butter croissant\n7. Muffin ($3.00)\n   Blueberry muffin\n",
+        "response": "Welcome to Coffee S50! Order by number or name:\n\n1. Espresso ($3.50)\n   Strong, pure coffee shot\n2. Latte ($4.50)\n   latte with steamed milk\n3. Cappuccino ($4.50)\n   Equal parts latte, steamed milk, and foam\n4. Cold Brew ($4.50)\n   12-hour steeped coffee\n5. Iced Latte ($4.50)\n   latte over ice with cold milk\n6. Croissant ($3.50)\n   Butter croissant\n7. Muffin ($3.00)\n   Blueberry muffin\n",
         "expected_state": "INITIAL"
       },
       {

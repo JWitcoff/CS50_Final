@@ -28,6 +28,12 @@ from src.core.menu_handler import MenuHandler
 from src.core.state import CustomerContext, OrderContext
 from src.core.conversation_handler import ConversationHandler
 
+# At the top of app.py, after imports
+from importlib import reload
+from src.core import config
+reload(config)
+from src.core.config import MENU, MODIFIERS
+
 # Configuration Constants
 PORT = int(os.getenv('PORT', 10000))
 HOST = '0.0.0.0'
@@ -383,6 +389,8 @@ def handle_sms():
 
 @app.route('/')
 def home():
+    print("Debug - MENU contents:", MENU)  # Debug print
+    print("Debug - First item:", MENU[1]['item'])  # Should print 'Espresso'
     return render_template('index.html', 
                          twilio_number=TWILIO_PHONE_NUMBER,
                          menu=MENU)
