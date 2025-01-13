@@ -26,27 +26,26 @@ class MenuHandler:
             'soy milk': ['soy milk', 'soy']
         }
         
-        # Check for ALL menu items in the message
-        for menu_id, item in self.menu.items():
-            # Check numeric reference
+        # First check for numeric menu references
+        for menu_id, menu_item in self.menu.items():
             if str(menu_id) in message:
-                # Create a copy and ensure we keep the original item name
-                item_copy = item.copy()
-                item_copy['item'] = self.menu[menu_id]['item']  # Use exact name from menu
-                processed_item = self._process_item(item_copy, is_iced, milk_modifiers, message)
+                # Get the original menu item by ID and preserve its case
+                original_item = self.menu[menu_id].copy()
+                processed_item = self._process_item(original_item, is_iced, milk_modifiers, message)
                 if processed_item:
                     found_items.append(processed_item)
-                continue
-            
-            # Check item name - use original case for comparison
-            original_name = item['item']
-            if self._check_item_match(original_name.lower(), words, is_iced):
-                # Use original item name
-                item_copy = item.copy()
-                item_copy['item'] = original_name
-                processed_item = self._process_item(item_copy, is_iced, milk_modifiers, message)
-                if processed_item:
-                    found_items.append(processed_item)
+        
+        # Then check for item names if no numeric reference found
+        if not found_items:
+            for menu_id, item in self.menu.items():
+                # Check item name - use original case for comparison
+                original_name = item['item']
+                if self._check_item_match(original_name.lower(), words, is_iced):
+                    # Use original item name
+                    item_copy = item.copy()
+                    processed_item = self._process_item(item_copy, is_iced, milk_modifiers, message)
+                    if processed_item:
+                        found_items.append(processed_item)
         
         logger.info(f"Extracted items: {found_items}")
         return found_items
@@ -117,4 +116,3 @@ class MenuHandler:
         denials = ['no', 'nope', 'n', 'regular', 'normal', 'none', 'cancel', 'nah']
         message = message.lower().strip('!., ')
         return message in denials
-    
