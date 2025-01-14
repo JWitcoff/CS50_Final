@@ -18,7 +18,7 @@ MODIFIERS = {
 }
 
 MENU = {
-    1: {'item': 'latte', 'price': Decimal('3.50'), 'category': 'hot', 'description': 'Strong, pure coffee shot'},
+    1: {'item': 'Espresso', 'price': Decimal('3.50'), 'category': 'hot', 'description': 'Strong, pure coffee shot'},
     2: {'item': 'Latte', 'price': Decimal('4.50'), 'category': 'hot', 'description': 'latte with steamed milk'},
     3: {'item': 'Cappuccino', 'price': Decimal('4.50'), 'category': 'hot', 'description': 'Equal parts latte, steamed milk, and foam'},
     4: {'item': 'Cold Brew', 'price': Decimal('4.50'), 'category': 'cold', 'description': '12-hour steeped coffee'},
