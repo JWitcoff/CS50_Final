@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from src.core.enums import OrderStage
 
 class PaymentHandler:
     def __init__(self):
@@ -14,6 +15,9 @@ class PaymentHandler:
         message = message.lower()
         
         if message == 'cash':
+            if phone_number not in active_orders:
+                return "No active order found. Please start a new order."
+                
             cart = active_orders[phone_number]['cart']
             order_id = str(uuid.uuid4())[:8]
             
@@ -24,19 +28,24 @@ class PaymentHandler:
             completed_orders[phone_number].append({
                 'cart': cart,
                 'order_id': order_id,
-                'timestamp': datetime.now()
+                'timestamp': datetime.now(),
+                'payment_method': 'cash'
             })
             
+            # Store total before removing active order
+            total = cart.get_total()
+            
+            # Clear from active orders
             del active_orders[phone_number]
             
             return (
-                f"Perfect! Please pay ${cart.get_total():.2f} when you pick up your order.\n"
-                f"Your order number is #{order_id}\n"
-                "Your order will be ready in about 15 minutes."
+                f"Great choice! 😊 Please pay ${total:.2f} when you pick up your order. "
+                f"Your order number is #{order_id}. It'll be ready in about 15 minutes. Enjoy your treats!"
             )
         
         elif message == 'card':
-            active_orders[phone_number]['state'] = 'AWAITING_CARD'
+            if phone_number in active_orders:
+                active_orders[phone_number]['state'] = OrderStage.AWAITING_CARD
             return (
                 "Please provide your card details in the format:\n"
                 "CARD [16-digit number] [MM/YY] [CVV]\n"
@@ -72,9 +81,13 @@ class PaymentHandler:
         if not is_valid:
             return error_message
         
+        if phone_number not in active_orders:
+            return "No active order found. Please start a new order."
+            
         # Process payment (in real app, would integrate with payment processor)
         cart = active_orders[phone_number]['cart']
         order_id = str(uuid.uuid4())[:8]
+        total = cart.get_total()
         
         # Move to completed orders
         if phone_number not in completed_orders:
@@ -83,32 +96,18 @@ class PaymentHandler:
         completed_orders[phone_number].append({
             'cart': cart,
             'order_id': order_id,
-            'timestamp': datetime.now()
+            'timestamp': datetime.now(),
+            'payment_method': 'card'
         })
         
+        # Clear from active orders
         del active_orders[phone_number]
         
         return (
-            f"Payment successful! Your total was ${cart.get_total():.2f}\n"
-            f"Your order number is #{order_id}\n"
+            f"Payment successful! Your total was ${total:.2f}. "
+            f"Your order number is #{order_id}. "
             "Your order will be ready in about 15 minutes."
         )
-
-    def _handle_credit_card(self, order):
-        return {
-            'success': True,
-            'message': (
-                f"Total: ${order.total:.2f}\n"
-                "Please reply with your card details in this format:\n"
-                "CARD 1234567890123456 12/25 123"
-            )
-        }
-
-    def _handle_cash(self, order):
-        return {
-            'success': True,
-            'message': f"Perfect! Please pay ${order.total:.2f} when you pick up your order. Your order number is #{order.id}"
-        }
 
     def validate_card_details(self, card_number, exp_date, cvv):
         """Simple card validation"""
@@ -129,4 +128,20 @@ class PaymentHandler:
             return True, "Card validated successfully"
         except Exception as e:
             return False, "Invalid card format. Please use: CARD [number] [MM/YY] [CVV]"
-        
+
+    def _handle_credit_card(self, order):
+        return {
+            'success': True,
+            'message': (
+                f"Total: ${order.total:.2f}\n"
+                "Please reply with your card details in this format:\n"
+                "CARD 1234567890123456 12/25 123"
+            )
+        }
+
+    def _handle_cash(self, order):
+        return {
+            'success': True,
+            'message': f"Perfect! Please pay ${order.total:.2f} when you pick up your order. Your order number is #{order.id}"
+        }
+    
