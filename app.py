@@ -1,28 +1,32 @@
+# Standard library imports
+from datetime import datetime, timedelta
 import logging
 import os
-import sys
 import uuid
-from datetime import datetime, timedelta
+import sys
 from decimal import Decimal
-from typing import Dict, List, Optional, Tuple
+from typing import List, Dict, Tuple, Optional
 
+# Third-party imports
 from decouple import config
 from dotenv import load_dotenv
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, request, render_template, jsonify
 from openai import OpenAI
-from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
+from twilio.rest import Client
+import httpx
 
-from src.core.cart import CartItem, ShoppingCart
-from src.core.config import MENU, MODIFIERS
-from src.core.conversation_handler import ConversationHandler
+# Local/application imports
 from src.core.dialogue import DialogueManager
-from src.core.enums import OrderStage
-from src.core.menu_handler import MenuHandler
-from src.core.order import OrderProcessor, OrderQueue
+from src.core.order import OrderProcessor, OrderQueue, Order
 from src.core.payment import PaymentHandler
+from src.core.enums import OrderStage
 from src.core.session import SessionManager
+from src.core.config import MENU, MODIFIERS
+from src.core.cart import ShoppingCart, CartItem
+from src.core.menu_handler import MenuHandler
 from src.core.state import CustomerContext, OrderContext
+from src.core.conversation_handler import ConversationHandler
 
 # Configuration Constants
 PORT = int(os.getenv('PORT', 10000))
@@ -99,28 +103,35 @@ def process_message(phone_number, message):
     message = message.lower().strip()
     logger.info(f"Processing message: {message} from {phone_number}")
     
+    # Update or get session state
+    session = session_manager.get_session(phone_number)
+    current_state = session['state']
+    logger.info(f"Session state for {phone_number}: {current_state}")
+    
     # Handle MENU command in any state
     if message == 'menu':
         return get_menu_message()
         
     # Handle START command
     if message == 'start':
-        session = session_manager.create_session(phone_number)
         active_orders[phone_number] = {
             'state': OrderStage.MENU,
             'cart': ShoppingCart(),
             'order_queue': OrderQueue(),
             'pending_items': []
         }
+        session_manager.update_session_state(phone_number, OrderStage.MENU)
         return get_menu_message()
         
     # Check if user has an active order
     if phone_number not in active_orders:
         return "Please text 'START' to begin ordering."
-        
+    
     order = active_orders[phone_number]
-    current_state = order['state']
-    logger.info(f"Current state for {phone_number}: {current_state}")
+    
+    # Sync session state with order state
+    if order['state'] != current_state:
+        session_manager.update_session_state(phone_number, order['state'])
     
     # Get or create customer context
     if phone_number not in customer_contexts:
@@ -129,7 +140,17 @@ def process_message(phone_number, message):
     
     # Create cart context for responses
     cart_context = get_cart_context(order['cart'], order)
-
+    
+    # Handle items in OrderQueue if any exist
+    if order['order_queue'].has_more():
+        next_item_response = order_processor.process_next_item(phone_number, active_orders)
+        if next_item_response:
+            return conversation_handler.get_friendly_response(
+                next_item_response,
+                customer_context,
+                cart=cart_context
+            )
+    
     # Handle cart inquiry
     if message.lower() in ['what did i order', 'what\'s in my cart', 'show cart']:
         return conversation_handler.get_friendly_response(
@@ -152,6 +173,7 @@ def process_message(phone_number, message):
                     cart=cart_context
                 )
             order['state'] = OrderStage.PAYMENT
+            session_manager.update_session_state(phone_number, OrderStage.PAYMENT)
             return conversation_handler.get_friendly_response(
                 "How would you like to pay? Reply with CASH or CARD.",
                 customer_context,
@@ -162,73 +184,79 @@ def process_message(phone_number, message):
     casual_response = conversation_handler.handle_chat(message, cart=cart_context)
     if casual_response and message not in ['menu', 'start']:
         return casual_response
+
+    # Rest of your existing process_message function stays the same until payment handling
     
-    # Handle AWAITING_MOD_CONFIRM state
-    if current_state == OrderStage.AWAITING_MOD_CONFIRM:
-        has_modifier, modifier = menu_handler.check_for_modification(message)
-        if has_modifier:
-            order['pending_modifier'] = modifier
+    # Handle payment state
+    if current_state == OrderStage.PAYMENT:
+        if message.lower() in ['cash', 'card']:
+            response = payment_handler.handle_payment(phone_number, message, active_orders, completed_orders)
+            if message.lower() == 'card':
+                session_manager.update_session_state(phone_number, OrderStage.AWAITING_CARD)
             return conversation_handler.get_friendly_response(
-                f"{modifier} costs $0.75 extra. Reply YES to confirm or NO for regular milk.",
-                customer_context,
-                cart=cart_context
-            )
-            
-        if menu_handler.is_confirmation(message):
-            modifiers = []
-            if 'pending_modifier' in order:
-                modifiers = [order['pending_modifier']]
-                customer_context.usual_modifications.append(order['pending_modifier'])
-                
-            order['cart'].add_item(order['pending_item'], modifiers=modifiers)
-                
-            # Update cart context after adding item
-            cart_context = get_cart_context(order['cart'], order)
-                
-            # Process next pending item if any exist
-            if order['pending_items']:
-                next_item = order['pending_items'].pop(0)
-                order['pending_item'] = next_item
-                cart_context['pending_item'] = next_item
-                
-                if next_item.get('modifiers'):
-                    mod = next_item['modifiers'][0]
-                    order['pending_modifier'] = mod
-                    return conversation_handler.get_friendly_response(
-                        f"{mod} costs $0.75 extra. Reply YES to confirm or NO for regular milk.",
-                        customer_context,
-                        cart=cart_context
-                    )
-                elif next_item['category'] in ['hot', 'cold']:
-                    return conversation_handler.get_friendly_response(
-                        "Would you like any milk modifications?",
-                        customer_context,
-                        cart=cart_context
-                    )
-            
-            # If no more pending items, return to menu state
-            order['state'] = OrderStage.MENU
-            order['pending_item'] = None
-            order['pending_modifier'] = None  # Clear pending modifier
-            return conversation_handler.get_friendly_response(
-                order['cart'].get_summary(),
-                customer_context,
+                response, 
+                customer_context, 
                 cart=cart_context,
-                item_added=True
+                payment=True
             )
-            
-        if menu_handler.is_denial(message):
-            order['cart'].add_item(order['pending_item'])
-            cart_context = get_cart_context(order['cart'], order)
-            
-            # Process next pending item if any exist
-            if order['pending_items']:
-                next_item = order['pending_items'].pop(0)
-                order['pending_item'] = next_item
-                cart_context['pending_item'] = next_item
-                
-                if next_item.get('modifiers'):
-                    mod = next_item['modifiers'][0]
-                    order['pending_modifier'] = mod
-                    return conversation_handler
-                
+        return conversation_handler.get_friendly_response(
+            "Please choose your payment method",
+            customer_context,
+            cart=cart_context
+        )
+    
+    # Handle card payment state
+    if current_state == OrderStage.AWAITING_CARD:
+        response = payment_handler.handle_card_payment(phone_number, message, active_orders, completed_orders)
+        if response.startswith("Thanks!"):  # Payment successful
+            session_manager.update_session_state(phone_number, OrderStage.COMPLETED)
+        return conversation_handler.get_friendly_response(
+            response, 
+            customer_context, 
+            cart=cart_context,
+            payment=True
+        )
+    
+    return conversation_handler.get_friendly_response(
+        "I'm not sure what to do. Would you like to start a new order?",
+        customer_context,
+        cart=cart_context,
+        confused=True
+    )
+
+@app.route('/sms', methods=['POST'])
+def handle_sms():
+    """Handle incoming SMS messages"""
+    phone_number = request.values.get('From', '')
+    message_body = request.values.get('Body', '').strip()
+    
+    logger.info(f"\n=== New Message ===")
+    logger.info(f"From: {phone_number}")
+    logger.info(f"Message: {message_body}")
+    
+    resp = MessagingResponse()
+    
+    try:
+        response_message = process_message(phone_number, message_body)
+        logger.info(f"Generated Response: {response_message}")
+        resp.message(response_message)
+    except Exception as e:
+        logger.error(f"Error processing message: {str(e)}", exc_info=True)
+        resp.message("Sorry, something went wrong. Please text 'START' to try again.")
+    
+    logger.info(f"Final Response: {str(resp)}")
+    logger.info("=== End Message ===")
+    return str(resp)
+
+@app.route('/')
+def home():
+    return render_template('index.html', 
+                         twilio_number=TWILIO_PHONE_NUMBER,
+                         menu=MENU)
+
+@app.route('/health')
+def health_check():
+    return 'OK', 200
+
+if __name__ == '__main__':
+    app.run(host=HOST, port=PORT)

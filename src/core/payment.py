@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
 from src.core.enums import OrderStage
+from src.core.order import Order
 
 class PaymentHandler:
     def __init__(self):
@@ -14,45 +15,46 @@ class PaymentHandler:
         """Handle payment method selection"""
         message = message.lower()
         
+        if phone_number not in active_orders:
+            return "No active order found. Please start a new order."
+            
+        cart = active_orders[phone_number]['cart']
+        
         if message == 'cash':
-            if phone_number not in active_orders:
-                return "No active order found. Please start a new order."
-                
-            cart = active_orders[phone_number]['cart']
-            order_id = str(uuid.uuid4())[:8]
+            # Create Order object
+            new_order = Order(phone_number, cart)
+            new_order.payment_method = 'cash'
             
             # Move to completed orders
             if phone_number not in completed_orders:
                 completed_orders[phone_number] = []
             
-            completed_orders[phone_number].append({
-                'cart': cart,
-                'order_id': order_id,
-                'timestamp': datetime.now(),
-                'payment_method': 'cash'
-            })
-            
-            # Store total before removing active order
-            total = cart.get_total()
+            completed_orders[phone_number].append(new_order)
             
             # Clear from active orders
             del active_orders[phone_number]
             
             return (
-                f"Great choice! 😊 Please pay ${total:.2f} when you pick up your order. "
-                f"Your order number is #{order_id}. It'll be ready in about 15 minutes. Enjoy your treats!"
+                f"Great choice! 😊 Please pay ${new_order.total:.2f} when you pick up your order. "
+                f"Your order number is #{new_order.id}. "
+                f"It'll be ready at {new_order.estimated_ready.strftime('%I:%M %p')}. "
+                f"Enjoy your treats!"
             )
         
         elif message == 'card':
             if phone_number in active_orders:
                 active_orders[phone_number]['state'] = OrderStage.AWAITING_CARD
+                # Create a pending order and store it
+                pending_order = Order(phone_number, cart)
+                pending_order.payment_method = 'card'
+                active_orders[phone_number]['pending_order'] = pending_order
+            
             return (
                 "Please provide your card details in the format:\n"
                 "CARD [16-digit number] [MM/YY] [CVV]\n"
                 "Example: CARD 1234567890123456 12/25 123"
             )
         
-        # Default case if neither cash nor card
         return (
             "Please choose a payment method:\n"
             "- Reply CASH for cash payment\n"
@@ -61,6 +63,9 @@ class PaymentHandler:
 
     def handle_card_payment(self, phone_number, message, active_orders, completed_orders):
         """Handle credit card payment processing"""
+        if phone_number not in active_orders:
+            return "No active order found. Please start a new order."
+            
         if not message.upper().startswith('CARD '):
             return (
                 "Please provide your card details in the format:\n"
@@ -81,32 +86,27 @@ class PaymentHandler:
         if not is_valid:
             return error_message
         
-        if phone_number not in active_orders:
-            return "No active order found. Please start a new order."
-            
-        # Process payment (in real app, would integrate with payment processor)
-        cart = active_orders[phone_number]['cart']
-        order_id = str(uuid.uuid4())[:8]
-        total = cart.get_total()
+        # Get the pending order from active orders
+        order = active_orders[phone_number].get('pending_order')
+        if not order:
+            # Create new order if none exists
+            cart = active_orders[phone_number]['cart']
+            order = Order(phone_number, cart)
+            order.payment_method = 'card'
         
         # Move to completed orders
         if phone_number not in completed_orders:
             completed_orders[phone_number] = []
         
-        completed_orders[phone_number].append({
-            'cart': cart,
-            'order_id': order_id,
-            'timestamp': datetime.now(),
-            'payment_method': 'card'
-        })
+        completed_orders[phone_number].append(order)
         
         # Clear from active orders
         del active_orders[phone_number]
         
         return (
-            f"Payment successful! Your total was ${total:.2f}. "
-            f"Your order number is #{order_id}. "
-            "Your order will be ready in about 15 minutes."
+            f"Payment successful! Your total was ${order.total:.2f}. "
+            f"Your order number is #{order.id}. "
+            f"Your order will be ready at {order.estimated_ready.strftime('%I:%M %p')}."
         )
 
     def validate_card_details(self, card_number, exp_date, cvv):
@@ -144,4 +144,3 @@ class PaymentHandler:
             'success': True,
             'message': f"Perfect! Please pay ${order.total:.2f} when you pick up your order. Your order number is #{order.id}"
         }
-    
