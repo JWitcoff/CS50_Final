@@ -3,7 +3,7 @@
     "test_id": "BASIC-1",
     "description": "Simple latte order",
     "category": "Basic Order Flows",
-    "timestamp": "2025-01-06T15:33:27.245008",
+    "timestamp": "2025-01-14T21:51:29.402457",
     "messages": [
       {
         "step": 1,
@@ -14,25 +14,25 @@
       {
         "step": 2,
         "input": "1",
-        "response": "Hey there! Would you like to add any milk modifications to your order today? Just let me know if you prefer almond, soy, or any other milk option. \ud83d\ude0a",
+        "response": null,
         "expected_state": "ORDERING"
       },
       {
         "step": 3,
         "input": "no",
-        "response": "Hey there! \ud83c\udf1f Your current cart looks like this:\n1x latte for $3.50. \nFeel free to:\n- ADD <number> to add more items\n- REMOVE <number> to remove items\n- DONE to checkout\n- CLEAR to empty your cart. \n\nLet me know if you need any help!",
+        "response": null,
         "expected_state": "MENU"
       },
       {
         "step": 4,
         "input": "done",
-        "response": "Hey there! How would you like to pay for your latte today? Let me know if you prefer CASH or CARD. \ud83d\ude0a",
+        "response": "Your cart is empty! Please add items before checking out.",
         "expected_state": "PAYMENT"
       },
       {
         "step": 5,
         "input": "cash",
-        "response": "Great choice on the latte! \ud83d\ude0a\nPlease pay $3.50 when you pick up your order.\nYour order number is #2561f7be.\nIt'll be ready in about 15 minutes.",
+        "response": null,
         "expected_state": "COMPLETED"
       }
     ],
@@ -49,36 +49,36 @@
     "test_id": "CART-1",
     "description": "Multiple items with modifier",
     "category": "Cart Management",
-    "timestamp": "2025-01-06T15:33:30.433139",
+    "timestamp": "2025-01-14T21:51:29.403258",
     "messages": [
       {
         "step": 1,
         "input": "start",
-        "response": "Welcome to Coffee S50! Order by number or name:\n\n1. latte ($3.50)\n   Strong, pure coffee shot\n2. Latte ($4.50)\n   latte with steamed milk\n3. Cappuccino ($4.50)\n   Equal parts latte, steamed milk, and foam\n4. Cold Brew ($4.50)\n   12-hour steeped coffee\n5. Iced Latte ($4.50)\n   latte over ice with cold milk\n6. Croissant ($3.50)\n   Butter croissant\n7. Muffin ($3.00)\n   Blueberry muffin\n",
+        "response": "Welcome to Coffee S50! Order by number or name:\n\n1. Espresso ($3.50)\n   Strong, pure coffee shot\n2. Latte ($4.50)\n   latte with steamed milk\n3. Cappuccino ($4.50)\n   Equal parts latte, steamed milk, and foam\n4. Cold Brew ($4.50)\n   12-hour steeped coffee\n5. Iced Latte ($4.50)\n   latte over ice with cold milk\n6. Croissant ($3.50)\n   Butter croissant\n7. Muffin ($3.00)\n   Blueberry muffin\n",
         "expected_state": "INITIAL"
       },
       {
         "step": 2,
         "input": "Iced latte with almond milk and a muffin",
-        "response": "Hey there! Just a heads up, almond milk is $0.75 extra. Would you like to go ahead with that? Just reply YES for almond milk or NO for regular milk. \ud83d\ude0a",
+        "response": null,
         "expected_state": "ORDERING"
       },
       {
         "step": 3,
         "input": "yes",
-        "response": "Great! Your current cart looks delicious with a muffin and an Iced Latte with almond milk. If you need to add more items, just let me know. Ready to checkout whenever you are! \ud83d\uded2",
+        "response": null,
         "expected_state": "MENU"
       },
       {
         "step": 4,
         "input": "done",
-        "response": "Hey there! How would you like to pay today? You can choose between CASH or CARD. \ud83d\ude0a",
+        "response": "Your cart is empty! Please add items before checking out.",
         "expected_state": "PAYMENT"
       },
       {
         "step": 5,
         "input": "cash",
-        "response": "Great choice! Your total is $8.25. Please pay when you pick up your order. Your order number is #931079d4. It'll be ready in about 15 minutes. Enjoy! \ud83c\udf1f",
+        "response": null,
         "expected_state": "COMPLETED"
       }
     ],
@@ -95,48 +95,48 @@
     "test_id": "CART-2",
     "description": "Sequential item addition",
     "category": "Cart Management",
-    "timestamp": "2025-01-06T15:33:33.207930",
+    "timestamp": "2025-01-14T21:51:29.403744",
     "messages": [
       {
         "step": 1,
         "input": "start",
-        "response": "Welcome to Coffee S50! Order by number or name:\n\n1. latte ($3.50)\n   Strong, pure coffee shot\n2. Latte ($4.50)\n   latte with steamed milk\n3. Cappuccino ($4.50)\n   Equal parts latte, steamed milk, and foam\n4. Cold Brew ($4.50)\n   12-hour steeped coffee\n5. Iced Latte ($4.50)\n   latte over ice with cold milk\n6. Croissant ($3.50)\n   Butter croissant\n7. Muffin ($3.00)\n   Blueberry muffin\n",
+        "response": "Welcome to Coffee S50! Order by number or name:\n\n1. Espresso ($3.50)\n   Strong, pure coffee shot\n2. Latte ($4.50)\n   latte with steamed milk\n3. Cappuccino ($4.50)\n   Equal parts latte, steamed milk, and foam\n4. Cold Brew ($4.50)\n   12-hour steeped coffee\n5. Iced Latte ($4.50)\n   latte over ice with cold milk\n6. Croissant ($3.50)\n   Butter croissant\n7. Muffin ($3.00)\n   Blueberry muffin\n",
         "expected_state": "INITIAL"
       },
       {
         "step": 2,
         "input": "latte",
-        "response": "Hey there! Would you like your usual almond milk today? \u2615\ufe0f",
+        "response": null,
         "expected_state": "ORDERING"
       },
       {
         "step": 3,
         "input": "no",
-        "response": "Hey there! \ud83d\udc4b Would you like any milk modifications for your latte? Just let me know!",
+        "response": null,
         "expected_state": "MENU"
       },
       {
         "step": 4,
         "input": "latte with almond milk",
-        "response": "Hey there! Just a heads up, almond milk is an additional $0.75. Would you like to proceed with the almond milk? Let me know with a YES for almond or NO for regular milk. \ud83d\ude0a",
+        "response": null,
         "expected_state": "ORDERING"
       },
       {
         "step": 5,
         "input": "yes",
-        "response": "Hey there! Your current items look delicious \ud83d\ude0a. \nIf you want to add more items, just type ADD <number>. \nIf you need to remove something, use REMOVE <number>.\nReady to checkout? Just type DONE. \nIf you want to start fresh, CLEAR will empty your cart. \nLet me know how I can assist you further!",
+        "response": null,
         "expected_state": "MENU"
       },
       {
         "step": 6,
         "input": "done",
-        "response": "Hey there! How would you like to pay for your order today? You can choose between CASH or CARD. \ud83d\ude0a",
+        "response": "Your cart is empty! Please add items before checking out.",
         "expected_state": "PAYMENT"
       },
       {
         "step": 7,
         "input": "cash",
-        "response": "Awesome choice on the lattes! \ud83d\ude0a Your total is $8.75, and you can pay when you pick up your order. Your order number is #c6e09baf, and it'll be ready in about 15 minutes. See you soon!",
+        "response": null,
         "expected_state": "COMPLETED"
       }
     ],
