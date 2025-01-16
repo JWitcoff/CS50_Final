@@ -100,26 +100,23 @@ class PaymentHandler:
             return error_message
         
         # Get the pending order from active orders
-        order = active_orders[phone_number].get('pending_order')
-        if not order:
-            # Create new order if none exists
-            cart = active_orders[phone_number]['cart']
-            order = Order(phone_number, cart)
-            order.payment_method = 'card'
+        cart = active_orders[phone_number]['cart']
+        new_order = Order(phone_number, cart)
+        new_order.payment_method = 'card'
         
         # Move to completed orders
         if phone_number not in completed_orders:
             completed_orders[phone_number] = []
         
-        completed_orders[phone_number].append(order)
+        completed_orders[phone_number].append(new_order)
         
         # Clear from active orders
         del active_orders[phone_number]
         
         return (
-            f"Payment successful! Your total was ${order.total:.2f}. "
-            f"Your order number is #{order.id}. "
-            f"Your order will be ready at {order.estimated_ready.strftime('%I:%M %p')}."
+            f"Payment successful! Your total was ${new_order.total:.2f}. "
+            f"Your order number is #{new_order.id}. "
+            f"Your order will be ready at {new_order.estimated_ready.strftime('%I:%M %p')}."
         )
 
     def validate_card_details(self, card_number, exp_date, cvv):
