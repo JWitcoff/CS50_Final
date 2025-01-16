@@ -57,6 +57,26 @@ class OrderProcessor:
             return True
         return False
 
+    def handle_done(self, phone_number, active_orders):
+        """Handle DONE command"""
+        if phone_number not in active_orders:
+            return "No active order found. Please start a new order."
+        
+        cart = active_orders[phone_number]['cart']
+        if cart.is_empty():
+            return "Your cart is empty! Please add items before checking out."
+        
+        # Show cart summary before payment
+        summary = cart.get_summary()
+        active_orders[phone_number]['state'] = OrderStage.PAYMENT
+        
+        return (
+            f"{summary}\n\n"
+            "Ready to complete your order! How would you like to pay?\n"
+            "- Reply CASH for cash payment\n"
+            "- Reply CARD for credit card"
+        )
+
 class Order:
     def __init__(self, phone_number, cart):
         self.id = str(uuid.uuid4())[:8]  # Short unique ID
@@ -71,4 +91,3 @@ class Order:
     def update_status(self, status):
         """Update order status"""
         self.status = status
-    
