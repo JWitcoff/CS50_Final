@@ -3,7 +3,7 @@
     "test_id": "BASIC-1",
     "description": "Simple latte order",
     "category": "Basic Order Flows",
-    "timestamp": "2025-01-15T20:17:00.351759",
+    "timestamp": "2025-01-15T20:49:58.741986",
     "messages": [
       {
         "step": 1,
@@ -14,25 +14,25 @@
       {
         "step": 2,
         "input": "1",
-        "response": "Hey there! Would you like any milk modifications for your drink tonight? \ud83d\ude0a",
+        "response": "Hey there! Would you like to add any milk modifications to your order? Just let me know if you prefer any alternatives like almond milk or oat milk. \ud83d\ude0a",
         "expected_state": "ORDERING"
       },
       {
         "step": 3,
         "input": "no",
-        "response": "Hey there! Your current cart looks great:\n1x Espresso ($3.50 each)\nTotal: $3.50\n\nFeel free to:\n- ADD <number> to add more items\n- REMOVE <number> to remove items\n- DONE to checkout\n- CLEAR to empty your cart\n\nLet me know how you'd like to proceed! \ud83d\ude0a",
+        "response": "Hey there! Your current cart looks like this:\n1x Espresso ($3.50 each)\nTotal: $3.50\n\nFeel free to:\n- ADD <number> to add more items\n- REMOVE <number> to remove items\n- DONE to checkout\n- CLEAR to empty cart\n\nLet me know how you'd like to proceed! \ud83d\ude0a",
         "expected_state": "MENU"
       },
       {
         "step": 4,
         "input": "done",
-        "response": "Hey there! How would you like to pay for your delicious espresso? You can reply with CASH or CARD. \ud83d\ude0a",
+        "response": "Hey there! How would you like to pay for your espresso tonight? You can choose between CASH or CARD. \ud83d\ude0a",
         "expected_state": "PAYMENT"
       },
       {
         "step": 5,
         "input": "cash",
-        "response": "Hey there! Awesome choice with the Espresso! \ud83d\ude0a Your total is $3.50, and you can pay when you come by. Your order number is #e9cc3675, and it'll be all set for you at 08:32 PM. Enjoy your treats!",
+        "response": "Awesome! \ud83d\ude0a Your total is $3.50. Just pay when you pick up your order with order number #3c730bb6. It'll be ready at 09:05 PM. Enjoy your treats!",
         "expected_state": "COMPLETED"
       }
     ],
@@ -49,7 +49,7 @@
     "test_id": "CART-1",
     "description": "Multiple items with modifier",
     "category": "Cart Management",
-    "timestamp": "2025-01-15T20:17:11.505293",
+    "timestamp": "2025-01-15T20:50:09.679601",
     "messages": [
       {
         "step": 1,
@@ -60,25 +60,25 @@
       {
         "step": 2,
         "input": "Iced latte with almond milk and a muffin",
-        "response": "Hey there! Just a heads up that almond milk is an additional $0.75. Would you like to go ahead with that? Reply YES for almond milk or NO for regular milk. \ud83d\ude0a",
+        "response": "Hey there! Just a heads up, almond milk is an extra $0.75. Would you like to add that to your order? Reply YES for almond milk or NO for regular milk \ud83d\ude0a.",
         "expected_state": "ORDERING"
       },
       {
         "step": 3,
         "input": "yes",
-        "response": "Awesome choices in your cart! \ud83c\udf1f\nHere's what you have:\n1x Muffin ($3.00 each)\n1x Iced Latte with almond milk ($5.25 each)\nTotal: $8.25\n\nYou can:\n- ADD <number> to add more items\n- REMOVE <number> to remove items\n- DONE to checkout\n- CLEAR to empty cart\n\nLet me know what you'd like to do next!",
+        "response": "Great choices! \ud83c\udf1f\n\nYou have:\n1x Muffin ($3.00 each)\n1x Iced Latte with almond milk ($5.25 each)\nTotal: $8.25\n\nFeel free to:\n- ADD <number> to add more items\n- REMOVE <number> to remove items\n- DONE to checkout\n- CLEAR to empty cart",
         "expected_state": "MENU"
       },
       {
         "step": 4,
         "input": "done",
-        "response": "Hey there! How would you like to pay for your order? You can choose between CASH or CARD. \ud83d\ude0a",
+        "response": "Hey there! How would you like to pay for your order tonight? You can choose between CASH or CARD. \ud83d\ude0a",
         "expected_state": "PAYMENT"
       },
       {
         "step": 5,
         "input": "cash",
-        "response": "Hey there! Awesome picks! \ud83d\ude0a Your total is $8.25. Please pay when you come by. Your order number is #231af0c9. It'll be ready at 08:32 PM. Enjoy your treats!",
+        "response": "Hey there! \ud83d\ude0a Awesome picks on the muffin and iced latte with almond milk. Your total is $8.25. Please pay when you pick up your order. Your order number is #0faccabf. It'll be ready at 09:05 PM. Enjoy your treats!",
         "expected_state": "COMPLETED"
       }
     ],
@@ -95,7 +95,7 @@
     "test_id": "CART-2",
     "description": "Sequential item addition",
     "category": "Cart Management",
-    "timestamp": "2025-01-15T20:17:32.107909",
+    "timestamp": "2025-01-15T20:50:27.947010",
     "messages": [
       {
         "step": 1,
@@ -106,25 +106,25 @@
       {
         "step": 2,
         "input": "latte",
-        "response": "Hey there! Would you like your usual almond milk with your order tonight? \ud83d\ude0a",
+        "response": "Hey there! Would you like your usual almond milk tonight? \ud83d\ude0a",
         "expected_state": "ORDERING"
       },
       {
         "step": 3,
         "input": "no",
-        "response": "Hey there! \ud83c\udf1f Your current cart looks like this:\n1x Latte ($4.50 each)\nTotal: $4.50\n\nFeel free to:\n- ADD <number> to add more items\n- REMOVE <number> to remove items\n- DONE to checkout\n- CLEAR to empty your cart\n\nLet me know if you need any help or if you're ready to check out!",
+        "response": "Hey there! Looks like you've got a Latte in your cart. \nYour Cart:\n1x Latte ($4.50 each)\nTotal: $4.50\n\nFeel free to:\n- ADD <number> to add more items\n- REMOVE <number> to remove items\n- DONE to checkout\n- CLEAR to empty cart\n\nLet me know if you need any help!",
         "expected_state": "MENU"
       },
       {
         "step": 4,
         "input": "latte with almond milk",
-        "response": "Hey there! Just a heads up, almond milk is an additional $0.75. Would you like to go ahead with that for your latte? Let me know with a YES for almond milk or a NO for regular milk! \ud83d\ude0a",
+        "response": "Hey there! Just a heads up, almond milk is $0.75 extra for your latte. Would you like to go ahead with that? Just reply with YES for almond milk or NO for regular milk. \ud83d\ude0a",
         "expected_state": "ORDERING"
       },
       {
         "step": 5,
         "input": "yes",
-        "response": "Great choices! \ud83c\udf1f\nTo add more items, just type ADD <number>.\nIf you want to remove something, type REMOVE <number>.\nReady to checkout? Just type DONE.\nIf you want to start fresh, type CLEAR. How can I assist you further?",
+        "response": "Great choices! \ud83c\udf1f\n\nTo add more items, just type ADD <number>.\nIf you want to remove anything, type REMOVE <number>.\nReady to checkout? Just type DONE.\nIf you want to start fresh, type CLEAR. \n\nLet me know how I can assist you further! \ud83d\ude0a",
         "expected_state": "MENU"
       },
       {
@@ -136,7 +136,7 @@
       {
         "step": 7,
         "input": "cash",
-        "response": "Hey there! \ud83d\ude0a That's a great choice! Your total is $9.75. Please pay when you pick up your order. Your order number is #961fe942. It'll be ready at 08:32 PM. Enjoy your treats!",
+        "response": "Hey there! Awesome picks with the lattes! \ud83d\ude0a Your total is $9.75. Please pay when you swing by. Your order number is #8a4ac3d6, and it'll be ready for you at 09:05 PM. Enjoy your treats!",
         "expected_state": "COMPLETED"
       }
     ],

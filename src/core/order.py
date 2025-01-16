@@ -33,6 +33,7 @@ class OrderProcessor:
         queue = order['order_queue']
         
         if not queue.has_more():
+            # Show cart summary when no more items
             return order['cart'].get_summary()
             
         next_item = queue.get_next()
