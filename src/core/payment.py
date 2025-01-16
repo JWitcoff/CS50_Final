@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime
 from src.core.enums import OrderStage
 from src.core.order import Order
+from fuzzywuzzy import fuzz
 
 class PaymentHandler:
     def __init__(self):
@@ -13,14 +14,30 @@ class PaymentHandler:
 
     def handle_payment(self, phone_number, message, active_orders, completed_orders):
         """Handle payment method selection"""
-        message = message.lower()
+        message = message.lower().strip()
         
-        if phone_number not in active_orders:
-            return "No active order found. Please start a new order."
+        # Define base payment methods
+        payment_methods = {
+            'cash': 0.8,  # 80% similarity threshold
+            'card': 0.8
+        }
+        
+        # Check for best match using fuzzy string matching
+        best_match = None
+        highest_ratio = 0
+        
+        for method, threshold in payment_methods.items():
+            ratio = fuzz.partial_ratio(method, message)
+            if ratio > highest_ratio and ratio >= threshold * 100:
+                highest_ratio = ratio
+                best_match = method
+        
+        if best_match == 'cash':
+            if phone_number not in active_orders:
+                return "No active order found. Please start a new order."
             
-        cart = active_orders[phone_number]['cart']
-        
-        if message == 'cash':
+            cart = active_orders[phone_number]['cart']
+            
             # Create Order object
             new_order = Order(phone_number, cart)
             new_order.payment_method = 'cash'
@@ -41,20 +58,16 @@ class PaymentHandler:
                 f"Enjoy your treats!"
             )
         
-        elif message == 'card':
+        elif best_match == 'card':
             if phone_number in active_orders:
                 active_orders[phone_number]['state'] = OrderStage.AWAITING_CARD
-                # Create a pending order and store it
-                pending_order = Order(phone_number, cart)
-                pending_order.payment_method = 'card'
-                active_orders[phone_number]['pending_order'] = pending_order
-            
             return (
                 "Please provide your card details in the format:\n"
                 "CARD [16-digit number] [MM/YY] [CVV]\n"
                 "Example: CARD 1234567890123456 12/25 123"
             )
         
+        # If neither cash nor card was detected
         return (
             "Please choose a payment method:\n"
             "- Reply CASH for cash payment\n"

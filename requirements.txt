@@ -137,3 +137,5 @@ yarl==1.18.3
     # via aiohttp
 zipp==3.21.0
     # via importlib-metadata
+fuzzywuzzy==0.18.0
+python-Levenshtein==0.21.1 
