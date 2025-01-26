@@ -16,7 +16,7 @@ A sophisticated SMS-based ordering system that enables customers to order coffee
 
 ## Project Overview
 
-The Coffee Shop SMS Ordering System transforms the traditional coffee ordering experience by allowing customers to place orders through text messages using natural language. Whether someone orders "an iced latte with almond milk and a muffin" or adds items sequentially, the system handles complex orders with customizations while maintaining a natural conversation flow. The system is particularly innovative in its ability to maintain context throughout the ordering process and handle multiple items with different modifications simultaneously.
+The Coffee Shop SMS Ordering System transforms the traditional coffee ordering experience by allowing customers to place orders through text messages using natural language. Whether someone orders "an iced latte with almond milk and a muffin" or adds items sequentially, the system handles complex orders with customizations while maintaining a natural conversation flow. Additionally, the app stands out in its ability to maintain context throughout the ordering process while handling multiple items with different modifications simultaneously.
 
 ## Technology Stack
 
@@ -162,7 +162,7 @@ cp .env.example .env
 python app.py
 ```
 
-## Future Enhancements
+## Future Enhancements (if work continues)
 
 Planned improvements include:
 - Order history tracking
@@ -170,6 +170,7 @@ Planned improvements include:
 - Menu customization interface
 - Analytics dashboard
 - Extended payment integrations
+- Improved natural language processing
 
 ## Contributing
 
