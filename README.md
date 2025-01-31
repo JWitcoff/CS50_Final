@@ -1,5 +1,5 @@
 # COFFEE S50
-#### Video Demo:  <https://youtu.be/ZttBqK4_Cds>
+#### Video Demo:  <https://www.youtube.com/watch?v=FznzQJs5TPE>
 #### Description:
 
 Hello! 
